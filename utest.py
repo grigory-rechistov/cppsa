@@ -8,6 +8,9 @@ from multichecks import *
 import unittest
 
 class TestInputFiles(unittest.TestCase):
+    # TODO Some of tests in this group write to stdout. Maybe stdout should be
+    # intercepted to keep the test report clean. main() should accept -quiet
+
     def test_main_on_empty_file(self):
         argv = ['cpssa', '/dev/null']
         res = cpssa_main(argv)
@@ -19,8 +22,6 @@ class TestInputFiles(unittest.TestCase):
         self.assertTrue(res == 0)
 
     def test_main_on_unknown(self):
-        # TODO this test writes to stdout. Maybe it should be intercepted to
-        #      keep clean test report
         argv = ['cpssa', 'test/unknown']
         res = cpssa_main(argv)
         self.assertTrue(res == 1)
@@ -29,6 +30,12 @@ class TestInputFiles(unittest.TestCase):
         argv = ['cpssa', 'test/unknown', 'test/unknown-wl']
         res = cpssa_main(argv)
         self.assertFalse(res)
+
+    def test_main_on_unmarked_endif(self):
+        argv = ['cpssa', 'test/unmarked-endif']
+        res = cpssa_main(argv)
+        self.assertTrue(res == 1)
+
 
 class TestConstants(unittest.TestCase):
     def test_diag_to_number(self):

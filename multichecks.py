@@ -48,6 +48,7 @@ def exsessive_ifdef_nesting(dirs):
     return res
 
 def unmarked_remote_endif(dirs):
+#    import pdb; pdb.set_trace()
     # Check that
         #if COND
         # has matching comment at:
@@ -84,6 +85,7 @@ def unmarked_remote_endif(dirs):
 
 def run_complex_checks(pre_line_pairs):
     multi_line_checks = (exsessive_ifdef_nesting,
+                         unmarked_remote_endif,
     )
     res = list()
 

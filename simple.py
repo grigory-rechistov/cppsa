@@ -4,7 +4,6 @@ from directives import directive_contains_condition
 from diagcodes import diag_to_number
 
 def unknown_directive(directive):
-#    import pdb; pdb.set_trace()
     hashword = directive.hashword
     if not hashword in all_directives:
         return WarningDescription(diag_to_number["unknown"],
@@ -33,29 +32,52 @@ def complex_if_condition(directive):
         alphanum_count = sum(c in ok_symbols for c in txt)
         return len(txt) - alphanum_count
 
+    def tokens_without_comment(tokens):
+        # Disregard a trailing comment, i.e. anything after // or /*
+        res = []
+        for token in tokens:
+            if token.find("//") != -1 or token.find("/*") != -1:
+                # TODO ideally, split trailing comment in current token, but
+                # preserve the head
+                break
+            res.append(token)
+        return res
+
+    def look_for_operators(directive):
+        has_operators = False
+        tokens = directive.tokens[1:]
+        tokens = tokens_without_comment(tokens)
+        for token in tokens:
+            has_operators = (has_operators or has_logic_operator(token) or
+                         has_comparison_operator(token))
+        return has_operators
+
+    def count_noncomment_tokens(directive):
+        tokens = directive.tokens[1:]
+        tokens = tokens_without_comment(tokens)
+        return len(tokens)
+
     if not directive_contains_condition(directive.hashword):
         return
-    has_operators = False
     # Generally, we want to allow only expressions using a single variable, e.g.
     #     #if SYMBOL, #if !SYMBOL, # if defined(SYMBOL) etc.
     # We want to notify about logic expressions, such as
     #     #if defined(EXPR1) && defined (EXPR2)
-    # TODO ideally, a proper scanner/parser should be here. For now, just apply
+    # TODO A proper scanner/parser should be here. For now, just apply
     # a few heuristics.
-    # TODO disregard a trailing comment, i.e. anything after // or /*
-    tokens = directive.tokens[1:]
-    for token in tokens:
-        has_operators = (has_operators or has_logic_operator(token) or
-                         has_comparison_operator(token))
+    has_operators = look_for_operators(directive)
+
+    # Consider wordiness a bad sign
+    tokens_threshold = 5 # an arbitrary value, really
+    too_many_tokens = count_noncomment_tokens(directive) > tokens_threshold
 
     # In absense of proper tokenizer, consider all non-alphanumeric symbols as
     # potential token delimeters
     non_alphanum = count_non_alphanum(directive.raw_text)
 
     non_alphanum_threshold = 6
-    tokens_threshold = 5 # an arbitrary value, really
     if (has_operators
-        or len(tokens) > tokens_threshold
+        or too_many_tokens
         or non_alphanum > non_alphanum_threshold):
         return WarningDescription(diag_to_number["complex_if_condition"],
                               "Logical condition looks to be overly complex")
