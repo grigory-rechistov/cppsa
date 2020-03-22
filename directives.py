@@ -33,3 +33,7 @@ def is_open_directive(d):
 
 def is_close_directive(d):
     return d in (ENDIF, P_ENDIF)
+
+def line_is_preprocessor_directive(txt):
+    txt = txt.strip()
+    return (len(txt) > 0 and txt[0] in preprocessor_prefixes)

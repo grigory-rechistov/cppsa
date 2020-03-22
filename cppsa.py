@@ -7,6 +7,7 @@ from btypes import WarningDescription, PreprocessorDirective
 from directives import preprocessor_prefixes
 
 from directives import is_open_directive, is_close_directive
+from directives import line_is_preprocessor_directive
 from diagcodes import diag_to_number
 
 from simple import run_simple_checks
@@ -28,10 +29,6 @@ def read_whitelist(input_file, global_whitelist):
                 continue
             res.append((line, wcode))
     return res
-
-def line_is_preprocessor_directive(txt):
-    txt = txt.strip()
-    return (len(txt) > 0 and txt[0] in preprocessor_prefixes)
 
 def extract_preprocessor_lines(input_file):
     # TODO maybe handle multi-line comments?
