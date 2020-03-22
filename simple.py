@@ -1,5 +1,6 @@
 from btypes import WarningDescription
 from directives import all_directives, preprocessor_prefixes
+from directives import directive_contains_condition
 from diagcodes import diag_to_number
 
 def unknown_directive(directive):
@@ -20,10 +21,48 @@ def indented_directive(directive):
         return WarningDescription(diag_to_number["whitespace"],
                               "Preprocessor directive starts with whitespace")
 
+def complex_if_condition(directive):
+    def has_logic_operator(t):
+        return (t.find("&&") != -1 or t.find("||") != -1)
+    def has_comparison_operator(t):
+        return (t.find(">") != -1 or t.find("<") != -1)
+
+    def count_non_alphanum(txt):
+        ascii_string = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
+        alphanum_count = sum(c in ascii_string for c in txt)
+        return len(txt) - alphanum_count
+
+    if not directive_contains_condition(directive.hashword):
+        return
+    has_operators = False
+    # Generally, we want to allow only expressions using a single variable, e.g.
+    #     #if SYMBOL, #if !SYMBOL, # if defined(SYMBOL) etc.
+    # We want to notify about logic expressions, such as
+    #     #if defined(EXPR1) && defined (EXPR2)
+    # TODO ideally, a proper scanner/parser should be here. For now, just apply
+    # a few heuristics.
+    tokens = directive.tokens[1:]
+    for token in tokens:
+        has_operators = (has_operators or has_logic_operator(token) or
+                         has_comparison_operator(token))
+
+    # In absense of proper tokenizer, consider all non-alphanumeric symbols as
+    # potential token delimeters
+    non_alphanum = count_non_alphanum(directive.raw_text)
+
+    non_alphanum_threshold = 6
+    tokens_threshold = 5 # an arbitrary value, really
+    if (has_operators
+        or len(tokens) > tokens_threshold
+        or non_alphanum > non_alphanum_threshold):
+        return WarningDescription(diag_to_number["complex_if_condition"],
+                              "Logical condition looks to be overly complex")
+
 def run_simple_checks(pre_line_pairs):
     single_line_checks = (unknown_directive,
                           multi_line_define,
-                          indented_directive)
+                          indented_directive,
+                          complex_if_condition)
 
     res = list()
     for pre_pair in pre_line_pairs:
@@ -32,3 +71,4 @@ def run_simple_checks(pre_line_pairs):
             if w:
                 res.append((pre_pair[0], w.wcode, w.details))
     return res
+

@@ -37,3 +37,6 @@ def is_close_directive(d):
 def line_is_preprocessor_directive(txt):
     txt = txt.strip()
     return (len(txt) > 0 and txt[0] in preprocessor_prefixes)
+
+def directive_contains_condition(txt):
+    return txt in (IF, P_IF)

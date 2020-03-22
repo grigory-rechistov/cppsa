@@ -35,7 +35,18 @@ class TestConstants(unittest.TestCase):
         values = set(diag_to_number.values())
         self.assertEqual(len(keys), len(values))
 
-class TestRegularDirectives(unittest.TestCase):
+class TestSimpleDirectives(unittest.TestCase):
+    def test_is_open_directive(self):
+        self.assertTrue(is_open_directive("#if"))
+        self.assertTrue(is_open_directive("#ifdef"))
+        self.assertTrue(is_open_directive("#ifndef"))
+        self.assertFalse(is_open_directive("#define"))
+        self.assertFalse(is_open_directive("#endif"))
+
+    def test_is_close_directive(self):
+        self.assertTrue(is_close_directive("#endif"))
+        self.assertFalse(is_close_directive("#if"))
+        self.assertFalse(is_close_directive("#else"))
 
     def test_indented_directive(self):
         directive = PreprocessorDirective("        #define SYMBOL")
@@ -57,18 +68,38 @@ class TestRegularDirectives(unittest.TestCase):
         res = multi_line_define(directive)
         self.assertTrue(res)
 
-    def test_is_open_directive(self):
-        self.assertTrue(is_open_directive("#if"))
-        self.assertTrue(is_open_directive("#ifdef"))
-        self.assertTrue(is_open_directive("#ifndef"))
-        self.assertFalse(is_open_directive("#define"))
-        self.assertFalse(is_open_directive("#endif"))
+    def test_complex_if_condition_for_simple(self):
+        directive = PreprocessorDirective("#if CONDITION")
+        res = complex_if_condition(directive)
+        self.assertFalse(res)
+        directive = PreprocessorDirective("#if OS == linux")
+        res = complex_if_condition(directive)
+        self.assertFalse(res)
+        directive = PreprocessorDirective("#if !TRUE")
+        res = complex_if_condition(directive)
+        self.assertFalse(res)
 
-    def test_is_close_directive(self):
-        self.assertTrue(is_close_directive("#endif"))
-        self.assertFalse(is_close_directive("#if"))
-        self.assertFalse(is_close_directive("#else"))
+    def test_complex_if_condition_for_complex(self):
+        directive = PreprocessorDirective("#if LINUX || WINDOWS")
+        res = complex_if_condition(directive)
+        self.assertTrue(res)
+        directive = PreprocessorDirective("#if !LINUX && WINDOWS")
+        res = complex_if_condition(directive)
+        self.assertTrue(res)
 
+    def test_complex_if_condition_for_many_tokens(self):
+        # Keep spaces between words, they are important for the test
+        directive = PreprocessorDirective("#if ( ! ROUNDING_CONTROL ( DEFAULT ) == 4 )")
+        res = complex_if_condition(directive)
+        self.assertTrue(res)
+
+    def test_complex_if_condition_for_many_special_symbols(self):
+        directive = PreprocessorDirective("#if (!ROUNDING_CONTROL(DEFAULT)==4)")
+        res = complex_if_condition(directive)
+        self.assertTrue(res)
+
+
+class TestMultiLineDirectives(unittest.TestCase):
     def test_shallow_ifdef_nesting(self):
         dirs = (
             (1, PreprocessorDirective("#ifdef A")),
@@ -90,7 +121,7 @@ class TestRegularDirectives(unittest.TestCase):
         )
 
         res = exsessive_ifdef_nesting(dirs)
-        print(res)
+        #print("DBG", res)
         self.assertTrue(len(res) == 1)
 
 
