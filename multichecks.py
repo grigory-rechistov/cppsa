@@ -59,15 +59,16 @@ def unmarked_remote_endif(dirs):
     opened_if_stack = []
     for (lineno, directive) in dirs:
         if is_open_directive(directive.hashword):
-            opened_if_stack.append(lineno)
+            opened_if_stack.append((lineno, directive))
         elif is_close_directive(directive.hashword):
             if len(opened_if_stack) == 0:
                 # unbalanced #endif. Abort further processing.
                 break
-            start_lineno = opened_if_stack.pop()
+            (start_lineno, start_directive) = opened_if_stack.pop()
+            start_text = start_directive.raw_text.strip()
             scope_distance = lineno - start_lineno
             assert scope_distance > 0
-            if scope_distance < max_distance:
+            if scope_distance <= max_distance:
                 continue # Close lines are visible, no need to warn about
             endif_tokens = directive.tokens
             # TODO Ideally, we need to check if the text of the comment
@@ -76,9 +77,9 @@ def unmarked_remote_endif(dirs):
             # Instead, require that some comment is present
             if len(endif_tokens) < 2: # #endif plus at least something
                 unmarked_w = WarningDescription(diag_to_number["unmarked_endif"],
-                                      "Closing directive without comment to"
-                                      " help match against opening directive"
-                                      " at line %d" % start_lineno)
+                  ("No trailing comment to match opening" +
+                  " directive '%s' at line %d (%d lines apart)") %
+                      (start_text, start_lineno, scope_distance))
                 res.append((lineno, unmarked_w.wcode, unmarked_w.details))
     return res
 
