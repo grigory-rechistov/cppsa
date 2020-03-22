@@ -3,8 +3,14 @@ class PreprocessorDirective:
     def __init__(self, txt):
         self.raw_text = txt
         stripped_txt = txt.strip()
-        assert len(stripped_txt) > 0, "Line must have at least one symbol (#)"
+        assert len(stripped_txt) > 0, "Line must have at least one symbol (# or similar)"
+
         tokens = list(token.strip() for token in stripped_txt.split(" "))
+        if len(tokens[0]) == 1: # space between leading symbol and keyword,
+            # Merge them
+            tokens = [tokens[0] + tokens[1]] + tokens[2:]
+
+        # Unglue hash if needed
         final_token = tokens[-1]
         has_glued_slash = len(final_token) > 1 and final_token[-1] == "\\"
         if has_glued_slash:

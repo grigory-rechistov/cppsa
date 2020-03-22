@@ -28,8 +28,9 @@ def complex_if_condition(directive):
         return (t.find(">") != -1 or t.find("<") != -1)
 
     def count_non_alphanum(txt):
-        ascii_string = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
-        alphanum_count = sum(c in ascii_string for c in txt)
+        txt = txt.replace(" ", "")
+        ok_symbols = set("_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
+        alphanum_count = sum(c in ok_symbols for c in txt)
         return len(txt) - alphanum_count
 
     if not directive_contains_condition(directive.hashword):
@@ -58,11 +59,19 @@ def complex_if_condition(directive):
         return WarningDescription(diag_to_number["complex_if_condition"],
                               "Logical condition looks to be overly complex")
 
+def space_after_leading_symbol(directive):
+    if len(directive.raw_text) < 2:
+        return
+    if directive.raw_text[1] in (" ", "\t"):
+        return WarningDescription(diag_to_number["space_after_leading"],
+                              "Space between leading symbol and keyword")
+
 def run_simple_checks(pre_line_pairs):
     single_line_checks = (unknown_directive,
                           multi_line_define,
                           indented_directive,
-                          complex_if_condition)
+                          complex_if_condition,
+                          space_after_leading_symbol)
 
     res = list()
     for pre_pair in pre_line_pairs:

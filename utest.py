@@ -36,6 +36,10 @@ class TestConstants(unittest.TestCase):
         self.assertEqual(len(keys), len(values))
 
 class TestSimpleDirectives(unittest.TestCase):
+    def test_space_between_hash_and_keyword(self):
+        directive = PreprocessorDirective("# define A")
+        self.assertEqual(directive.hashword, "#define")
+
     def test_is_open_directive(self):
         self.assertTrue(is_open_directive("#if"))
         self.assertTrue(is_open_directive("#ifdef"))
@@ -96,6 +100,14 @@ class TestSimpleDirectives(unittest.TestCase):
     def test_complex_if_condition_for_many_special_symbols(self):
         directive = PreprocessorDirective("#if (!ROUNDING_CONTROL(DEFAULT)==4)")
         res = complex_if_condition(directive)
+        self.assertTrue(res)
+
+    def test_space_after_leading_symbol(self):
+        directive = PreprocessorDirective("# define F")
+        res = space_after_leading_symbol(directive)
+        self.assertTrue(res)
+        directive = PreprocessorDirective("#\tdefine F")
+        res = space_after_leading_symbol(directive)
         self.assertTrue(res)
 
 

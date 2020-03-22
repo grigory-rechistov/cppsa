@@ -5,5 +5,6 @@ diag_to_number = {
         "whitespace": 3,
         "deepnest" : 4,
         "complex_if_condition": 5,
+        "space_after_leading": 6,
     }
 
