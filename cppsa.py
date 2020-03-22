@@ -14,7 +14,7 @@ from simple import run_simple_checks
 from multichecks import run_complex_checks
 
 # TODO turn these into knobs
-verbose = True
+verbose = False
 print_line = True
 
 def read_whitelist(input_file, global_whitelist):

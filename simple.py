@@ -42,6 +42,7 @@ def complex_if_condition(directive):
     #     #if defined(EXPR1) && defined (EXPR2)
     # TODO ideally, a proper scanner/parser should be here. For now, just apply
     # a few heuristics.
+    # TODO disregard a trailing comment, i.e. anything after // or /*
     tokens = directive.tokens[1:]
     for token in tokens:
         has_operators = (has_operators or has_logic_operator(token) or
