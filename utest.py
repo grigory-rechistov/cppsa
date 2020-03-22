@@ -18,6 +18,12 @@ class TestInputFiles(unittest.TestCase):
         res = cpssa_main(argv)
         self.assertTrue(res == 1)
 
+class TestConstants(unittest.TestCase):
+    def test_diag_to_number(self):
+        # The mapping must be one-to-one
+        keys = set(diag_to_number.keys())
+        values = set(diag_to_number.values())
+        self.assertEqual(len(keys), len(values))
 
 class TestRegularDirectives(unittest.TestCase):
 

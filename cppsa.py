@@ -38,7 +38,12 @@ def is_open_directive(d):
 def is_close_directive(d):
     return d in (ENDIF, P_ENDIF)
 
-
+diag_to_number = {
+        "unknown": 1,
+        "multiline": 2,
+        "whitespace": 3,
+        "deepnest" : 4,
+    }
 
 class PreprocessorDirective:
     def __init__(self, txt):
@@ -94,23 +99,22 @@ class WarningDescription:
     def __repr__(self):
         return "<%d %s>" % (self.wcode, self.details)
 
-# TODO invent a more flexible warning enumeration system. Don't use magic
-# numbers. They should have priority level, from serious to mild.
-
 def unknown_directive(directive):
 #    import pdb; pdb.set_trace()
     hashword = directive.hashword
     if not hashword in all_directives:
-        return WarningDescription(1, "Unknown directive %s" % hashword)
+        return WarningDescription(diag_to_number["unknown"],
+                                  "Unknown directive %s" % hashword)
 
 def multi_line_define(directive):
     last_token = directive.tokens[-1]
     if last_token == "\\":
-        return WarningDescription(2, "Multi-line define")
+        return WarningDescription(diag_to_number["multiline"],
+                                  "Multi-line define")
 
 def indented_directive(directive):
     if not (directive.raw_text[0] in preprocessor_prefixes):
-        return WarningDescription(3,
+        return WarningDescription(diag_to_number["whitespace"],
                               "Preprocessor directive starts with whitespace")
 
 
@@ -128,7 +132,8 @@ def exsessive_ifdef_nesting(dirs):
                 for prev_lineno in reversed(opened_if_stack):
                     description += (" Earlier, an if-block"
                                     " was opened at line %d." % prev_lineno)
-                new_diag = WarningDescription(4, description)
+                new_diag = WarningDescription(diag_to_number["deepnest"],
+                                              description)
                 res.append((lineno, new_diag))
             opened_if_stack.append(lineno)
         elif is_close_directive(directive.hashword):
@@ -155,6 +160,29 @@ def filter_diagnostics(diagnostics, whitelist):
             res.append(diag)
     return res
 
+def run_simple_checks(pre_line_pairs):
+    single_line_checks = (unknown_directive,
+                          multi_line_define,
+                          indented_directive)
+
+    res = list()
+    for pre_pair in pre_line_pairs:
+        for check in single_line_checks:
+            w = check(pre_pair[1])
+            if w:
+                res.append((pre_pair[0], w.wcode, w.details))
+    return res
+
+def run_complex_checks(pre_line_pairs):
+    multi_line_checks = (exsessive_ifdef_nesting,
+    )
+    res = list()
+
+    for check in multi_line_checks:
+        res_list = check(pre_line_pairs)
+        res += res_list
+    return res
+
 def main(argv):
     # TODO introduce proper argparser
     # TODO have a separate whitelist of top level macrodefines: TARGET_HAS_ etc.
@@ -169,25 +197,8 @@ def main(argv):
     pre_line_pairs = extract_preprocessor_lines(input_file)
 
     diagnostics = list()
-
-
-    single_line_checks = (unknown_directive,
-                          multi_line_define,
-                          indented_directive)
-
-    for pre_pair in pre_line_pairs:
-        for check in single_line_checks:
-            w = check(pre_pair[1])
-            if w:
-                diagnostics.append((pre_pair[0], w.wcode, w.details))
-
-    # TODO add multi-line checks which operate over the complete file
-    multi_line_checks = (exsessive_ifdef_nesting,
-    )
-
-    for check in multi_line_checks:
-        res_list = check(pre_line_pairs)
-        diagnostics += res_list
+    diagnostics += run_simple_checks(pre_line_pairs)
+    diagnostics += run_complex_checks(pre_line_pairs)
 
     # Filter collected diagnostics against the whitelist
     displayed_diagnostics = filter_diagnostics(diagnostics, whitelist)
