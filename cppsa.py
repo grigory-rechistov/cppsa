@@ -15,8 +15,28 @@ ENDIF ="#endif"
 ERROR = "#error"
 PRAGMA = "#pragma"
 
-all_directives = (INCLUDE, DEFINE, UNDEF, IFDEF, IFNDEF, IF, ELSE, ELIF, ENDIF,
+include_meta_directives = True
+P_IF = "\%if"
+P_IFDEF = "\%ifdef"
+P_IFNDEF = "\%ifndef"
+P_ENDIF = "\%endif"
+
+
+std_directives = (INCLUDE, DEFINE, UNDEF, IFDEF, IFNDEF, IF, ELSE, ELIF, ENDIF,
                   ERROR, PRAGMA)
+
+if include_meta_directives:
+    all_directives = std_directives + (P_IF, P_IFDEF, P_IFNDEF, P_ENDIF)
+    preprocessor_prefixes = ("#", "\%")
+else:
+    all_directives = std_directives
+    preprocessor_prefixes = ("#",)
+
+def is_open_directive(d):
+    return d in (IF, IFNDEF, IFDEF)
+
+def is_close_directive(d):
+    return d == ENDIF
 
 class PreprocessorDirective:
     def __init__(self, txt):
@@ -50,7 +70,8 @@ def read_whitelist(input_file, global_whitelist):
 
 def line_is_preprocessor_directive(txt):
     txt = txt.strip()
-    return (len(txt) > 0 and txt[0] == "#")
+
+    return (len(txt) > 0 and txt[0] in preprocessor_prefixes)
 
 def extract_preprocessor_lines(input_file):
     # TODO maybe handle multi-line comments?
@@ -86,7 +107,7 @@ def multi_line_define(directive):
         return WarningDescription(2, "Multi-line define")
 
 def indented_directive(directive):
-    if directive.raw_text[0] != "#":
+    if not (directive.raw_text[0] in preprocessor_prefixes):
         return WarningDescription(3,
                               "Preprocessor directive starts with whitespace")
 
