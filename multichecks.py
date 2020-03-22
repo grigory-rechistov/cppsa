@@ -18,7 +18,7 @@ def exsessive_ifdef_nesting(dirs):
                                     " was opened at line %d." % prev_lineno)
                 new_diag = WarningDescription(diag_to_number["deepnest"],
                                               description)
-                res.append((lineno, new_diag))
+                res.append((lineno, new_diag.wcode, new_diag.details))
             opened_if_stack.append(lineno)
         elif is_close_directive(directive.hashword):
             level += -1
