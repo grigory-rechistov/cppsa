@@ -1,0 +1,8 @@
+
+#define L
+
+#ifdef L
+
+int m = 6;
+
+#endif // L

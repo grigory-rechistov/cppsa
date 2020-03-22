@@ -9,6 +9,16 @@ class TestRegularDirectives(unittest.TestCase):
         res = cpssa_main(argv)
         self.assertTrue(res == 0)
 
+    def test_main_on_basic(self):
+        argv = ['cpssa', 'test/basic']
+        res = cpssa_main(argv)
+        self.assertTrue(res == 0)
+
+    def test_main_on_unknown(self):
+        argv = ['cpssa', 'test/unknown']
+        res = cpssa_main(argv)
+        self.assertTrue(res == 1)
+
     def test_indented_directive(self):
         directive = PreprocessorDirective("        #define SYMBOL")
         res = indented_directive(directive)

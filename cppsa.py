@@ -38,6 +38,8 @@ def is_open_directive(d):
 def is_close_directive(d):
     return d in (ENDIF, P_ENDIF)
 
+
+
 class PreprocessorDirective:
     def __init__(self, txt):
         self.raw_text = txt
@@ -138,7 +140,7 @@ def exsessive_ifdef_nesting(dirs):
 
 def usage(argv):
     print("Usage: %s <input> [whitelist]" % argv[0])
-    sys.exit(1)
+    return 2
 
 def filter_diagnostics(diagnostics, whitelist):
     res = list()
@@ -157,7 +159,7 @@ def main(argv):
     # TODO introduce proper argparser
     # TODO have a separate whitelist of top level macrodefines: TARGET_HAS_ etc.
     if len(argv) < 2:
-        usage(argv)
+        return usage(argv)
     input_file = argv[1]
     if len(argv) == 3:
         whitelist = read_whitelist(argv[2])
