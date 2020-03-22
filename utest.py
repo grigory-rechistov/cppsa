@@ -2,8 +2,7 @@ from cppsa import *
 from cppsa import main as cpssa_main
 import unittest
 
-class TestRegularDirectives(unittest.TestCase):
-
+class TestInputFiles(unittest.TestCase):
     def test_main_on_empty_file(self):
         argv = ['cpssa', '/dev/null']
         res = cpssa_main(argv)
@@ -18,6 +17,9 @@ class TestRegularDirectives(unittest.TestCase):
         argv = ['cpssa', 'test/unknown']
         res = cpssa_main(argv)
         self.assertTrue(res == 1)
+
+
+class TestRegularDirectives(unittest.TestCase):
 
     def test_indented_directive(self):
         directive = PreprocessorDirective("        #define SYMBOL")
