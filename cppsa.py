@@ -111,8 +111,33 @@ def indented_directive(directive):
         return WarningDescription(3,
                               "Preprocessor directive starts with whitespace")
 
-def usage():
-    print("Usage: %s <input> [whitelist]" % sys.argv[0])
+
+def exsessive_ifdef_nesting(dirs):
+    res = list()
+    level = 0
+    max_level = 2
+    opened_if_stack = []
+    for (lineno, directive) in dirs:
+        if is_open_directive(directive.hashword):
+            level += 1
+            if level > max_level:
+                description = "Nesting of if-endif is too deep."
+
+                for prev_lineno in reversed(opened_if_stack):
+                    description += (" Earlier, an if-block"
+                                    " was opened at line %d." % prev_lineno)
+                new_diag = WarningDescription(4, description)
+                res.append((lineno, new_diag))
+            opened_if_stack.append(lineno)
+        elif is_close_directive(directive.hashword):
+            level += -1
+            opened_if_stack.pop()
+    # Note: this check does not check unmatched directives
+    return res
+
+
+def usage(argv):
+    print("Usage: %s <input> [whitelist]" % argv[0])
     sys.exit(1)
 
 def filter_diagnostics(diagnostics, whitelist):
@@ -132,7 +157,7 @@ def main(argv):
     # TODO introduce proper argparser
     # TODO have a separate whitelist of top level macrodefines: TARGET_HAS_ etc.
     if len(argv) < 2:
-        usage()
+        usage(argv)
     input_file = argv[1]
     if len(argv) == 3:
         whitelist = read_whitelist(argv[2])
@@ -148,7 +173,6 @@ def main(argv):
                           multi_line_define,
                           indented_directive)
 
-
     for pre_pair in pre_line_pairs:
         for check in single_line_checks:
             w = check(pre_pair[1])
@@ -156,7 +180,12 @@ def main(argv):
                 diagnostics.append((pre_pair[0], w.wcode, w.details))
 
     # TODO add multi-line checks which operate over the complete file
+    multi_line_checks = (exsessive_ifdef_nesting,
+    )
 
+    for check in multi_line_checks:
+        res_list = check(pre_line_pairs)
+        diagnostics += res_list
 
     # Filter collected diagnostics against the whitelist
     displayed_diagnostics = filter_diagnostics(diagnostics, whitelist)
