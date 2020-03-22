@@ -60,9 +60,11 @@ def complex_if_condition(directive):
                               "Logical condition looks to be overly complex")
 
 def space_after_leading_symbol(directive):
-    if len(directive.raw_text) < 2:
+
+    txt = directive.raw_text.strip()
+    if len(txt) < 2:
         return
-    if directive.raw_text[1] in (" ", "\t"):
+    if txt[1] in (" ", "\t"):
         return WarningDescription(diag_to_number["space_after_leading"],
                               "Space between leading symbol and keyword")
 

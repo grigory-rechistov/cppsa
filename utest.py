@@ -110,6 +110,12 @@ class TestSimpleDirectives(unittest.TestCase):
         res = space_after_leading_symbol(directive)
         self.assertTrue(res)
 
+    def test_more_spaces_around_leading_symbol(self):
+        directive = PreprocessorDirective(" #   include <lib>")
+        res = space_after_leading_symbol(directive)
+        self.assertTrue(res)
+
+
 
 class TestMultiLineDirectives(unittest.TestCase):
     def test_shallow_ifdef_nesting(self):
