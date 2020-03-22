@@ -18,6 +18,12 @@ class TestInputFiles(unittest.TestCase):
         res = cpssa_main(argv)
         self.assertTrue(res == 1)
 
+    def test_main_on_unknown_with_whitelist(self):
+        argv = ['cpssa', 'test/unknown', 'test/unknown-wl']
+        res = cpssa_main(argv)
+        self.assertFalse(res)
+
+
 class TestConstants(unittest.TestCase):
     def test_diag_to_number(self):
         # The mapping must be one-to-one

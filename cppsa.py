@@ -68,11 +68,16 @@ def read_whitelist(input_file, global_whitelist):
     res = list()
     with open(global_whitelist) as f:
         for line in f:
-            (fname, line, wcode) = (tkn.strip() for tkn in line.split(","))
+            tokens = list(tkn.strip() for tkn in line.split(":"))
+            fname = tokens[0]
+            line = int(tokens[1])
+            # Strip leading "W"
+            undecorated_wcode = (tokens[2][1:] if tokens[2][0] == 'W'
+                                               else tokens[2])
+            wcode = int(undecorated_wcode)
             if fname != input_file:
                 continue
-            line = int(line)
-            res.append(line, wcode)
+            res.append((line, wcode))
     return res
 
 def line_is_preprocessor_directive(txt):
@@ -190,7 +195,7 @@ def main(argv):
         return usage(argv)
     input_file = argv[1]
     if len(argv) == 3:
-        whitelist = read_whitelist(argv[2])
+        whitelist = read_whitelist(input_file, argv[2])
     else:
         whitelist = list()
 
