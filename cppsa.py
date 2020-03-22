@@ -13,6 +13,8 @@ from diagcodes import diag_to_number
 from simple import run_simple_checks
 from multichecks import run_complex_checks
 
+print_line = True # TODO turn into a knob
+
 def read_whitelist(input_file, global_whitelist):
     "Return a collection of suppressed warnings for input_file"
     res = list()
@@ -59,6 +61,16 @@ def filter_diagnostics(diagnostics, whitelist):
             res.append(diag)
     return res
 
+def get_print_line(line_pairs, lineno):
+    # TODO save reference to the original line in the diagnostic, instead of
+    # hunting for it once again. This is ineffective and stupid
+    candidates = list(t[1].raw_text for t in line_pairs if t[0] == lineno)
+    assert len(candidates) == 1, "The line could not disappear from the file"
+    res = candidates[0]
+    if res[-1] == "\n":
+        res = res[:-1]
+    return res
+
 def main(argv):
     # TODO introduce proper argparser
     # TODO have a separate whitelist of top level macrodefines: TARGET_HAS_ etc.
@@ -81,6 +93,9 @@ def main(argv):
     for diag in displayed_diagnostics:
         (lineno, wcode, details) = diag
         print("%s:%d: W%d: %s" % (input_file, lineno, wcode, details) )
+        if print_line:
+            verbatim_text = get_print_line(pre_line_pairs, lineno)
+            print("    %s" % verbatim_text)
 
     return 0 if len(displayed_diagnostics) == 0 else 1
 
