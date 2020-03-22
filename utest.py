@@ -1,5 +1,8 @@
 from cppsa import *
 from cppsa import main as cpssa_main
+from btypes import PreprocessorDirective
+from simple import *
+
 import unittest
 
 class TestInputFiles(unittest.TestCase):
@@ -22,7 +25,6 @@ class TestInputFiles(unittest.TestCase):
         argv = ['cpssa', 'test/unknown', 'test/unknown-wl']
         res = cpssa_main(argv)
         self.assertFalse(res)
-
 
 class TestConstants(unittest.TestCase):
     def test_diag_to_number(self):

@@ -3,65 +3,12 @@
 
 import sys
 
-INCLUDE = "#include"
-DEFINE = "#define"
-UNDEF ="#undef"
-IFDEF = "#ifdef"
-IFNDEF = "#ifndef"
-IF = "#if"
-ELSE = "#else"
-ELIF ="#elif"
-ENDIF ="#endif"
-ERROR = "#error"
-PRAGMA = "#pragma"
+from simple import run_simple_checks
+from btypes import WarningDescription, PreprocessorDirective
+from directives import preprocessor_prefixes
 
-include_meta_directives = True
-P_IF = "\%if"
-P_IFDEF = "\%ifdef"
-P_IFNDEF = "\%ifndef"
-P_ENDIF = "\%endif"
-
-std_directives = (INCLUDE, DEFINE, UNDEF, IFDEF, IFNDEF, IF, ELSE, ELIF, ENDIF,
-                  ERROR, PRAGMA)
-
-if include_meta_directives:
-    all_directives = std_directives + (P_IF, P_IFDEF, P_IFNDEF, P_ENDIF)
-    preprocessor_prefixes = ("#", "\%")
-else:
-    all_directives = std_directives
-    preprocessor_prefixes = ("#",)
-
-def is_open_directive(d):
-    return d in (IF, IFNDEF, IFDEF,
-                 P_IF, P_IFDEF, P_IFNDEF)
-
-def is_close_directive(d):
-    return d in (ENDIF, P_ENDIF)
-
-diag_to_number = {
-        "unknown": 1,
-        "multiline": 2,
-        "whitespace": 3,
-        "deepnest" : 4,
-    }
-
-class PreprocessorDirective:
-    def __init__(self, txt):
-        self.raw_text = txt
-        stripped_txt = txt.strip()
-        assert len(stripped_txt) > 0, "Line must have at least one symbol (#)"
-        tokens = list(token.strip() for token in stripped_txt.split(" "))
-        final_token = tokens[-1]
-        has_glued_slash = len(final_token) > 1 and final_token[-1] == "\\"
-        if has_glued_slash:
-            final_token_pair = [final_token[:-1], "\\"]
-            tokens = tokens[:-1] + final_token_pair
-
-        self.tokens = tokens
-        self.hashword = self.tokens[0]
-    def __repr__(self):
-        return "<PreprocessorDirective %s>" % (repr(self.raw_text))
-
+from directives import is_open_directive, is_close_directive
+from diagcodes import diag_to_number
 
 def read_whitelist(input_file, global_whitelist):
     "Return a collection of suppressed warnings for input_file"
@@ -82,7 +29,6 @@ def read_whitelist(input_file, global_whitelist):
 
 def line_is_preprocessor_directive(txt):
     txt = txt.strip()
-
     return (len(txt) > 0 and txt[0] in preprocessor_prefixes)
 
 def extract_preprocessor_lines(input_file):
@@ -96,31 +42,6 @@ def extract_preprocessor_lines(input_file):
             lineno += 1
     return res
 
-
-class WarningDescription:
-    def __init__(self, wcode, details):
-        self.wcode = wcode
-        self.details = details
-    def __repr__(self):
-        return "<%d %s>" % (self.wcode, self.details)
-
-def unknown_directive(directive):
-#    import pdb; pdb.set_trace()
-    hashword = directive.hashword
-    if not hashword in all_directives:
-        return WarningDescription(diag_to_number["unknown"],
-                                  "Unknown directive %s" % hashword)
-
-def multi_line_define(directive):
-    last_token = directive.tokens[-1]
-    if last_token == "\\":
-        return WarningDescription(diag_to_number["multiline"],
-                                  "Multi-line define")
-
-def indented_directive(directive):
-    if not (directive.raw_text[0] in preprocessor_prefixes):
-        return WarningDescription(diag_to_number["whitespace"],
-                              "Preprocessor directive starts with whitespace")
 
 
 def exsessive_ifdef_nesting(dirs):
@@ -165,18 +86,6 @@ def filter_diagnostics(diagnostics, whitelist):
             res.append(diag)
     return res
 
-def run_simple_checks(pre_line_pairs):
-    single_line_checks = (unknown_directive,
-                          multi_line_define,
-                          indented_directive)
-
-    res = list()
-    for pre_pair in pre_line_pairs:
-        for check in single_line_checks:
-            w = check(pre_pair[1])
-            if w:
-                res.append((pre_pair[0], w.wcode, w.details))
-    return res
 
 def run_complex_checks(pre_line_pairs):
     multi_line_checks = (exsessive_ifdef_nesting,
