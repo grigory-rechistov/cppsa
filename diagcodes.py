@@ -7,5 +7,6 @@ diag_to_number = {
         "complex_if_condition": 5,
         "space_after_leading": 6,
         "unbalanced": 7,
+        "unmarked_endif": 8,
     }
 

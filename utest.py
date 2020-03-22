@@ -153,5 +153,46 @@ class TestMultiLineDirectives(unittest.TestCase):
         res = exsessive_ifdef_nesting(dirs)
         self.assertTrue(len(res) == 1)
 
+    def test_unmarked_remote_endif(self):
+        dirs = (
+            (1, PreprocessorDirective("#ifdef A")),
+            (1000, PreprocessorDirective("#endif")),
+        )
+        res = unmarked_remote_endif(dirs)
+        self.assertTrue(len(res) == 1)
+
+    def test_unmarked_close_endif(self):
+        dirs = (
+            (1, PreprocessorDirective("#ifdef A")),
+            (2, PreprocessorDirective("#endif")),
+        )
+        res = unmarked_remote_endif(dirs)
+        self.assertTrue(len(res) == 0)
+
+        dirs = (
+            (1, PreprocessorDirective("#if A == B")),
+            (2, PreprocessorDirective("#endif")),
+        )
+        res = unmarked_remote_endif(dirs)
+        self.assertTrue(len(res) == 0)
+
+
+    def test_annotated_remote_endif(self):
+        dirs = (
+            (1, PreprocessorDirective("#ifdef A")),
+            (1000, PreprocessorDirective("#endif //A")),
+        )
+        res = unmarked_remote_endif(dirs)
+        self.assertTrue(len(res) == 0)
+
+        # TODO the comment should match #ifndef's condition, but it is unimplemented
+        dirs = (
+            (1, PreprocessorDirective("#ifndef A")),
+            (1000, PreprocessorDirective("#endif // some unrelated comment")),
+        )
+        res = unmarked_remote_endif(dirs)
+        self.assertTrue(len(res) == 0)
+
+
 if __name__ == '__main__':
     unittest.main()
