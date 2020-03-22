@@ -21,5 +21,5 @@ class WarningDescription:
         self.wcode = wcode
         self.details = details
     def __repr__(self):
-        return "<%d %s>" % (self.wcode, self.details)
+        return "<WarningDescription %d %s>" % (self.wcode, self.details)
 

@@ -1,7 +1,9 @@
-from cppsa import *
 from cppsa import main as cpssa_main
 from btypes import PreprocessorDirective
+from directives import is_open_directive, is_close_directive
+
 from simple import *
+from multichecks import *
 
 import unittest
 
