@@ -21,7 +21,6 @@ P_IFDEF = "\%ifdef"
 P_IFNDEF = "\%ifndef"
 P_ENDIF = "\%endif"
 
-
 std_directives = (INCLUDE, DEFINE, UNDEF, IFDEF, IFNDEF, IF, ELSE, ELIF, ENDIF,
                   ERROR, PRAGMA)
 
@@ -33,10 +32,11 @@ else:
     preprocessor_prefixes = ("#",)
 
 def is_open_directive(d):
-    return d in (IF, IFNDEF, IFDEF)
+    return d in (IF, IFNDEF, IFDEF,
+                 P_IF, P_IFDEF, P_IFNDEF)
 
 def is_close_directive(d):
-    return d == ENDIF
+    return d in (ENDIF, P_ENDIF)
 
 class PreprocessorDirective:
     def __init__(self, txt):
