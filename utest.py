@@ -19,6 +19,8 @@ class TestInputFiles(unittest.TestCase):
         self.assertTrue(res == 0)
 
     def test_main_on_unknown(self):
+        # TODO this test writes to stdout. Maybe it should be intercepted to
+        #      keep clean test report
         argv = ['cpssa', 'test/unknown']
         res = cpssa_main(argv)
         self.assertTrue(res == 1)
@@ -115,8 +117,6 @@ class TestSimpleDirectives(unittest.TestCase):
         res = space_after_leading_symbol(directive)
         self.assertTrue(res)
 
-
-
 class TestMultiLineDirectives(unittest.TestCase):
     def test_shallow_ifdef_nesting(self):
         dirs = (
@@ -139,9 +139,19 @@ class TestMultiLineDirectives(unittest.TestCase):
         )
 
         res = exsessive_ifdef_nesting(dirs)
-        #print("DBG", res)
         self.assertTrue(len(res) == 1)
 
+    def test_unbalanced_ifdef_nesting(self):
+        dirs = (
+            (1, PreprocessorDirective("#ifdef A")),
+        )
+        res = exsessive_ifdef_nesting(dirs)
+        self.assertTrue(len(res) == 1)
+        dirs = (
+            (1, PreprocessorDirective("#endif")),
+        )
+        res = exsessive_ifdef_nesting(dirs)
+        self.assertTrue(len(res) == 1)
 
 if __name__ == '__main__':
     unittest.main()

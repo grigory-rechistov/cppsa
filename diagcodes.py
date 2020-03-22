@@ -6,5 +6,6 @@ diag_to_number = {
         "deepnest" : 4,
         "complex_if_condition": 5,
         "space_after_leading": 6,
+        "unbalanced": 7,
     }
 

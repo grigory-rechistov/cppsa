@@ -13,7 +13,9 @@ from diagcodes import diag_to_number
 from simple import run_simple_checks
 from multichecks import run_complex_checks
 
-print_line = True # TODO turn into a knob
+# TODO turn these into knobs
+verbose = True
+print_line = True
 
 def read_whitelist(input_file, global_whitelist):
     "Return a collection of suppressed warnings for input_file"
@@ -77,6 +79,9 @@ def main(argv):
     if len(argv) < 2:
         return usage(argv)
     input_file = argv[1]
+
+    if verbose:
+        print("Processing %s" % input_file)
     if len(argv) == 3:
         whitelist = read_whitelist(input_file, argv[2])
     else:
