@@ -1,3 +1,5 @@
+# These are unit tests
+
 from cppsa import main as cpssa_main
 from btypes import PreprocessorDirective
 from directives import is_open_directive, is_close_directive
@@ -10,11 +12,6 @@ import unittest
 class TestInputFiles(unittest.TestCase):
     # TODO Some of tests in this group write to stdout. Maybe stdout should be
     # intercepted to keep the test report clean. main() should accept -quiet
-
-    def test_main_on_empty_file(self):
-        argv = ['cpssa', '/dev/null']
-        res = cpssa_main(argv)
-        self.assertTrue(res == 0)
 
     def test_main_on_basic(self):
         argv = ['cpssa', 'test/basic']
@@ -123,6 +120,18 @@ class TestSimpleDirectives(unittest.TestCase):
         directive = PreprocessorDirective(" #   include <lib>")
         res = space_after_leading_symbol(directive)
         self.assertTrue(res)
+        
+    def test_suggest_inline_function(self):
+        directive = PreprocessorDirective("#define MAX(a,b) (a) > (b) ? (a):(b)")
+        res = suggest_inline_function(directive)
+        self.assertTrue(res)
+        directive = PreprocessorDirective("#define MAX_INT 10000")
+        res = suggest_inline_function(directive)
+        self.assertFalse(res)
+        directive = PreprocessorDirective("#define TIMESTAMP() do_nasty_global_stuff")
+        res = suggest_inline_function(directive)
+        self.assertFalse(res)
+        
 
 class TestMultiLineDirectives(unittest.TestCase):
     def test_shallow_ifdef_nesting(self):
