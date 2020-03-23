@@ -1,6 +1,6 @@
 from btypes import WarningDescription
 from directives import all_directives, preprocessor_prefixes
-from directives import directive_contains_condition
+from directives import directive_contains_condition, directive_is_definition
 from diagcodes import diag_to_number
 
 def unknown_directive(directive):
@@ -91,12 +91,47 @@ def space_after_leading_symbol(directive):
         return WarningDescription(diag_to_number["space_after_leading"],
                               "Space between leading symbol and keyword")
 
+def suggest_inline_function(directive):
+    # A macrodefine with non-empty parameter list
+    # TODO this function would certainly benefit from a proper lexer
+    if not directive_is_definition(directive.hashword):
+        return
+    if len(directive.tokens) < 2:
+        return
+    
+    first_token = directive.tokens[1]
+    # The bracket must be glued to the symbol
+    opening_bracket = first_token.find("(")
+    if opening_bracket == -1: # it is a #define without parameters
+        return
+    closing_bracket = first_token.find(")")
+    if closing_bracket != -1:
+        if closing_bracket == opening_bracket + 1:
+            # No parameters between brackets "()"
+            return
+        # else something is between brackets
+    else:
+        # Look for the bracket in the next token
+        if len(directive.tokens) < 3:
+            # Malformed directive, bail out
+            return
+        second_token = directive.tokens[2]
+        if second_token[0] == ")":
+            # No symbols between "(" in first_token and ")" in second_token
+            return
+        # otherwise, there is at least one symbol after "("
+    
+    return WarningDescription(diag_to_number["suggest_inline_function"],
+                            "Suggest defining a static inline function instead")
+    
+
 def run_simple_checks(pre_line_pairs):
     single_line_checks = (unknown_directive,
                           multi_line_define,
                           indented_directive,
                           complex_if_condition,
-                          space_after_leading_symbol)
+                          space_after_leading_symbol,
+                          suggest_inline_function)
 
     res = list()
     for pre_pair in pre_line_pairs:

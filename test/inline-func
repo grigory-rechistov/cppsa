@@ -1,0 +1,2 @@
+#define LOST()lost
+#define FOUND( x) not_found

@@ -33,6 +33,11 @@ class TestInputFiles(unittest.TestCase):
         res = cpssa_main(argv)
         self.assertTrue(res == 1)
 
+    def test_main_on_suggest_inline_func(self):
+        argv = ['cpssa', 'test/inline-func']
+        res = cpssa_main(argv)
+        self.assertTrue(res == 1)
+
 
 class TestConstants(unittest.TestCase):
     def test_diag_to_number(self):
@@ -121,11 +126,25 @@ class TestSimpleDirectives(unittest.TestCase):
         res = space_after_leading_symbol(directive)
         self.assertTrue(res)
         
-    def test_suggest_inline_function(self):
+    def test_suggest_inline_function_give_suggestion(self):
         directive = PreprocessorDirective("#define MAX(a,b) (a) > (b) ? (a):(b)")
         res = suggest_inline_function(directive)
         self.assertTrue(res)
+        directive = PreprocessorDirective("#define A( a ) /* nothing */")
+        res = suggest_inline_function(directive)
+        self.assertTrue(res)
+        directive = PreprocessorDirective("#define A( a) substitution")
+        res = suggest_inline_function(directive)
+        self.assertTrue(res)
+        directive = PreprocessorDirective("#define A(a , b) substitution")
+        res = suggest_inline_function(directive)
+        self.assertTrue(res)
+        
+    def test_suggest_inline_function_reject_suggestion(self):
         directive = PreprocessorDirective("#define MAX_INT 10000")
+        res = suggest_inline_function(directive)
+        self.assertFalse(res)
+        directive = PreprocessorDirective("#define A (a)")
         res = suggest_inline_function(directive)
         self.assertFalse(res)
         directive = PreprocessorDirective("#define TIMESTAMP() do_nasty_global_stuff")

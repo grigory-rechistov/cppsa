@@ -8,7 +8,7 @@ diag_to_number = {
         "space_after_leading": 6,
         "unbalanced": 7,
         "unmarked_endif": 8,
-        # TODO "suggest_inline_function"
+        "suggest_inline_function" : 9,
         # TODO "undef_is_bad"
         # TODO suggest_enum_or_const
         # TODO remove_if_0_endif_dead_code
