@@ -22,6 +22,10 @@ def read_whitelist(input_file, global_whitelist):
     res = list()
     with open(global_whitelist) as f:
         for line in f:
+            # To make it compatible with cppsa's own output, ignore lines
+            # prepended with space
+            if len(line) == 0 or line[0] == " ":
+                continue
             tokens = list(tkn.strip() for tkn in line.split(":"))
             fname = tokens[0]
             line = int(tokens[1])
