@@ -19,7 +19,6 @@ class BaseMultilineDiagnostic:
 
 def make_deep_warning(opened_if_stack):
     description = "Nesting of if-endif is too deep."
-
     for prev_lineno in reversed(opened_if_stack):
         description += (" Earlier, an if-block"
                         " was opened at line %d." % prev_lineno)
@@ -56,32 +55,54 @@ class IfdefNestingDiagnostic(BaseMultilineDiagnostic):
                 opened_if_stack.pop()
         return res
 
-def unbalanced_if_endif(pre_lines):
-    res = list()
-    opened_if_stack = []
-    for directive in pre_lines:
-        lineno = directive.lineno
-        if is_open_directive(directive.hashword):
-            opened_if_stack.append(lineno)
-        elif is_close_directive(directive.hashword):
-            if len(opened_if_stack) == 0:
-                unbalanced_dia = PreprocessorDiagnostic(
-                                    diag_to_number["unbalanced_endif"],
-                                    lineno,
-                                    "Unbalanced closing directive found")
-                res.append((lineno, unbalanced_dia.wcode,
-                            unbalanced_dia.details))
-                break
-            opened_if_stack.pop()
+class UnbalancedEndifDiagnostic(BaseMultilineDiagnostic):
+    def __init__(self, directive, description):
+        super().__init__(directive, description)
+        self.wcode = diag_to_number["unbalanced_endif"]
 
-    while len(opened_if_stack) > 0:
-        lineno = opened_if_stack.pop()
-        unbalanced_dia = PreprocessorDiagnostic(diag_to_number["unbalanced_if"],
-                                    lineno,
-                                    "Unbalanced opening directive found")
-        res.append((lineno, unbalanced_dia.wcode,
-                    unbalanced_dia.details))
-    return res
+    @staticmethod
+    def apply_to_lines(pre_lines):
+        res = list()
+        opened_if_stack = []
+        for directive in pre_lines:
+            lineno = directive.lineno
+            if is_open_directive(directive.hashword):
+                opened_if_stack.append(lineno)
+            elif is_close_directive(directive.hashword):
+                if len(opened_if_stack) == 0:
+                    unbalanced_dia = UnbalancedEndifDiagnostic(directive,
+                                        "Unbalanced closing directive found")
+                    res.append(unbalanced_dia)
+                    break
+                opened_if_stack.pop()
+        return res
+
+class UnbalancedIfDiagnostic(BaseMultilineDiagnostic):
+    def __init__(self, directive, description):
+        super().__init__(directive, description)
+        self.wcode = diag_to_number["unbalanced_if"]
+
+    @staticmethod
+    def apply_to_lines(pre_lines):
+        res = list()
+        opened_if_stack = []
+        for directive in pre_lines:
+            lineno = directive.lineno
+            if is_open_directive(directive.hashword):
+                opened_if_stack.append(lineno)
+            elif is_close_directive(directive.hashword):
+                if len(opened_if_stack) == 0:
+                    # endifs are unbalanced, bail out
+                    break
+                opened_if_stack.pop()
+
+        while len(opened_if_stack) > 0:
+            lineno = opened_if_stack.pop()
+            unbalanced_dia = UnbalancedIfDiagnostic(directive,
+                                        "Unbalanced opening directive found")
+            res.append(unbalanced_dia)
+        return res
+
 
 def unmarked_remote_endif(pre_lines):
 #    import pdb; pdb.set_trace()
@@ -124,8 +145,9 @@ def unmarked_remote_endif(pre_lines):
 
 def run_complex_checks(pre_lines):
     multi_line_checks = (IfdefNestingDiagnostic.apply_to_lines,
+                         UnbalancedEndifDiagnostic.apply_to_lines,
+                         UnbalancedIfDiagnostic.apply_to_lines,
                          unmarked_remote_endif,
-                         unbalanced_if_endif,
     )
     res = list()
 
