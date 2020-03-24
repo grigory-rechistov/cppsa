@@ -25,7 +25,6 @@ class UnknownDirectiveDiagnostic(BaseDiagnostic):
         super().__init__(lineno, directive)
         self.wcode = diag_to_number["unknown"]
         self.details = "Unknown directive %s" % directive.hashword
-
     @staticmethod
     def apply(directive):
         lineno = directive.lineno
@@ -38,17 +37,15 @@ class MultiLineDiagnostic(BaseDiagnostic):
         super().__init__(lineno, directive)
         self.wcode = diag_to_number["multiline"]
         self.details = "Multi-line define"    
-
-def multi_line_define(directive):
-    lineno = directive.lineno
-    last_token = directive.tokens[-1]
-    if last_token == "\\":
-        return MultiLineDiagnostic(lineno, directive)
+    @staticmethod
+    def apply(directive):
+        lineno = directive.lineno
+        last_token = directive.tokens[-1]
+        if last_token == "\\":
+            return MultiLineDiagnostic(lineno, directive)
 
 def indented_directive(directive):
     lineno = directive.lineno
-
-
     if not (directive.raw_text[0] in preprocessor_prefixes):
         return PreprocessorDiagnostic(diag_to_number["whitespace"],
                               lineno,
@@ -171,7 +168,7 @@ def suggest_inline_function(directive):
 
 def run_simple_checks(pre_lines):
     single_line_checks = (UnknownDirectiveDiagnostic.apply,
-                          multi_line_define,
+                          MultiLineDiagnostic.apply,
                           indented_directive,
                           complex_if_condition,
                           space_after_leading_symbol,

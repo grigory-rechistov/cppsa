@@ -75,12 +75,12 @@ class TestSimpleDirectives(unittest.TestCase):
 
     def test_multi_line_define_separate(self):
         directive = PreprocessorDirective("#define TEXT \\", 1)
-        res = multi_line_define(directive)
+        res = MultiLineDiagnostic.apply(directive)
         self.assertTrue(res)
 
     def test_multi_line_define_joined(self):
         directive = PreprocessorDirective("#define TEXT\\", 1)
-        res = multi_line_define(directive)
+        res = MultiLineDiagnostic.apply(directive)
         self.assertTrue(res)
 
     def test_complex_if_condition_for_simple(self):
