@@ -146,14 +146,14 @@ class UnmarkedEndifDiagnostic(BaseMultilineDiagnostic):
 
 
 def run_complex_checks(pre_lines):
-    multi_line_checks = (IfdefNestingDiagnostic.apply_to_lines,
-                         UnbalancedEndifDiagnostic.apply_to_lines,
-                         UnbalancedIfDiagnostic.apply_to_lines,
-                         UnmarkedEndifDiagnostic.apply_to_lines,
+    all_multi_line_diagnostics = (
+                        IfdefNestingDiagnostic,
+                        UnbalancedEndifDiagnostic,
+                        UnbalancedIfDiagnostic,
+                        UnmarkedEndifDiagnostic,
     )
-    res = list()
 
-    for check in multi_line_checks:
-        res_list = check(pre_lines)
-        res += res_list
+    res = list()
+    for dia_class in all_multi_line_diagnostics:
+        res += dia_class.apply_to_lines(pre_lines)
     return res
