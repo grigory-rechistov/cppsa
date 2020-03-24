@@ -65,90 +65,90 @@ class TestSimpleDirectives(unittest.TestCase):
 
     def test_indented_directive(self):
         directive = PreprocessorDirective("        #define SYMBOL")
-        res = indented_directive(directive)
+        res = indented_directive([0, directive])
         self.assertTrue(res)
 
     def test_unknown_directive(self):
         directive = PreprocessorDirective("#unknown I am something unknown")
-        res = unknown_directive(directive)
+        res = unknown_directive([0, directive])
         self.assertTrue(res)
 
     def test_multi_line_define_separate(self):
         directive = PreprocessorDirective("#define TEXT \\")
-        res = multi_line_define(directive)
+        res = multi_line_define([0, directive])
         self.assertTrue(res)
 
     def test_multi_line_define_joined(self):
         directive = PreprocessorDirective("#define TEXT\\")
-        res = multi_line_define(directive)
+        res = multi_line_define([0, directive])
         self.assertTrue(res)
 
     def test_complex_if_condition_for_simple(self):
         directive = PreprocessorDirective("#if CONDITION")
-        res = complex_if_condition(directive)
+        res = complex_if_condition([0, directive])
         self.assertFalse(res)
         directive = PreprocessorDirective("#if OS == linux")
-        res = complex_if_condition(directive)
+        res = complex_if_condition([0, directive])
         self.assertFalse(res)
         directive = PreprocessorDirective("#if !TRUE")
-        res = complex_if_condition(directive)
+        res = complex_if_condition([0, directive])
         self.assertFalse(res)
 
     def test_complex_if_condition_for_complex(self):
         directive = PreprocessorDirective("#if LINUX || WINDOWS")
-        res = complex_if_condition(directive)
+        res = complex_if_condition([0, directive])
         self.assertTrue(res)
         directive = PreprocessorDirective("#if !LINUX && WINDOWS")
-        res = complex_if_condition(directive)
+        res = complex_if_condition([0, directive])
         self.assertTrue(res)
 
     def test_complex_if_condition_for_many_tokens(self):
         # Keep spaces between words, they are important for the test
         directive = PreprocessorDirective("#if ( ! ROUNDING_CONTROL ( DEFAULT ) == 4 )")
-        res = complex_if_condition(directive)
+        res = complex_if_condition([0, directive])
         self.assertTrue(res)
 
     def test_complex_if_condition_for_many_special_symbols(self):
         directive = PreprocessorDirective("#if (!ROUNDING_CONTROL(DEFAULT)==4)")
-        res = complex_if_condition(directive)
+        res = complex_if_condition([0, directive])
         self.assertTrue(res)
 
     def test_space_after_leading_symbol(self):
         directive = PreprocessorDirective("# define F")
-        res = space_after_leading_symbol(directive)
+        res = space_after_leading_symbol([0, directive])
         self.assertTrue(res)
         directive = PreprocessorDirective("#\tdefine F")
-        res = space_after_leading_symbol(directive)
+        res = space_after_leading_symbol([0, directive])
         self.assertTrue(res)
 
     def test_more_spaces_around_leading_symbol(self):
         directive = PreprocessorDirective(" #   include <lib>")
-        res = space_after_leading_symbol(directive)
+        res = space_after_leading_symbol([0, directive])
         self.assertTrue(res)
-        
+
     def test_suggest_inline_function_give_suggestion(self):
         directive = PreprocessorDirective("#define MAX(a,b) (a) > (b) ? (a):(b)")
-        res = suggest_inline_function(directive)
+        res = suggest_inline_function([0, directive])
         self.assertTrue(res)
         directive = PreprocessorDirective("#define A( a ) /* nothing */")
-        res = suggest_inline_function(directive)
+        res = suggest_inline_function([0, directive])
         self.assertTrue(res)
         directive = PreprocessorDirective("#define A( a) substitution")
-        res = suggest_inline_function(directive)
+        res = suggest_inline_function([0, directive])
         self.assertTrue(res)
         directive = PreprocessorDirective("#define A(a , b) substitution")
-        res = suggest_inline_function(directive)
+        res = suggest_inline_function([0, directive])
         self.assertTrue(res)
         
     def test_suggest_inline_function_reject_suggestion(self):
         directive = PreprocessorDirective("#define MAX_INT 10000")
-        res = suggest_inline_function(directive)
+        res = suggest_inline_function([0, directive])
         self.assertFalse(res)
         directive = PreprocessorDirective("#define A (a)")
-        res = suggest_inline_function(directive)
+        res = suggest_inline_function([0, directive])
         self.assertFalse(res)
         directive = PreprocessorDirective("#define TIMESTAMP() do_nasty_global_stuff")
-        res = suggest_inline_function(directive)
+        res = suggest_inline_function([0, directive])
         self.assertFalse(res)
         
 

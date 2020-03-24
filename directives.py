@@ -1,3 +1,5 @@
+# Tokens recognized in analyzed files
+
 include_meta_directives = True
 
 INCLUDE = "#include"
@@ -43,7 +45,7 @@ def line_is_preprocessor_directive(txt):
 
 def directive_contains_condition(txt):
     return txt in (IF, P_IF)
-    
+
 def directive_is_definition(txt):
     # %define does not belong here for the purposes of being replaced by inline
     return txt in (DEFINE, )

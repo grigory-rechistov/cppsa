@@ -1,5 +1,8 @@
+# Base classes
 
 class PreprocessorDirective:
+    "Partially parsed source file line"
+    # TODO constructor should accept lineno
     def __init__(self, txt):
         self.raw_text = txt
         stripped_txt = txt.strip()
@@ -24,9 +27,12 @@ class PreprocessorDirective:
 
 class PreprocessorDiagnostic:
     "Base class for all diagnostics"
-    def __init__(self, wcode, details):
+    def __init__(self, wcode, lineno, details = None):
         self.wcode = wcode
+        assert isinstance(lineno, int)
+        self.lineno = lineno
         self.details = details
     def __repr__(self):
-        return "<PreprocessorDiagnostic %d %s>" % (self.wcode, self.details)
+        return "<PreprocessorDiagnostic %d at %d: %s>" % (
+                            self.wcode, self.lineno, self.details)
 

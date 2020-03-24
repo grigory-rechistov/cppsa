@@ -11,7 +11,7 @@ def exsessive_ifdef_nesting(dirs):
         for prev_lineno in reversed(opened_if_stack):
             description += (" Earlier, an if-block"
                             " was opened at line %d." % prev_lineno)
-        new_diag = PreprocessorDiagnostic(diag_to_number["deepnest"],
+        new_diag = PreprocessorDiagnostic(diag_to_number["deepnest"], lineno,
                                           description)
         return (lineno, new_diag.wcode, new_diag.details)
 
@@ -31,10 +31,12 @@ def exsessive_ifdef_nesting(dirs):
         elif is_close_directive(directive.hashword):
             level += -1
             if len(opened_if_stack) == 0:
+                # TODO extract into an own "unbalanced" diagnostic
                 # Either we missed an opening #if, or there is unbalanced #endif
                 # in the input. Abort further processing.
                 unbalanced_dia = PreprocessorDiagnostic(diag_to_number["unbalanced"],
-                                      "Unbalanced closing directive found")
+                                    lineno,
+                                    "Unbalanced closing directive found")
                 res.append((lineno, unbalanced_dia.wcode,
                             unbalanced_dia.details))
                 break
@@ -42,7 +44,8 @@ def exsessive_ifdef_nesting(dirs):
 
     if level > 0:
         unbalanced_dia = PreprocessorDiagnostic(diag_to_number["unbalanced"],
-                                      "Unbalanced opening directive found")
+                                    lineno,
+                                    "Unbalanced opening directive found")
         res.append((lineno, unbalanced_dia.wcode,
                     unbalanced_dia.details))
     return res
@@ -77,6 +80,7 @@ def unmarked_remote_endif(dirs):
             # Instead, require that some comment is present
             if len(endif_tokens) < 2: # #endif plus at least something
                 unmarked_w = PreprocessorDiagnostic(diag_to_number["unmarked_endif"],
+                  lineno,
                   ("No trailing comment to match opening" +
                   " directive '%s' at line %d (%d lines apart)") %
                       (start_text, start_lineno, scope_distance))

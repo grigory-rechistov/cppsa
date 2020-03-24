@@ -3,24 +3,37 @@ from directives import all_directives, preprocessor_prefixes
 from directives import directive_contains_condition, directive_is_definition
 from diagcodes import diag_to_number
 
-def unknown_directive(directive):
+def unknown_directive(directive_pair):
+    lineno = directive_pair[0]
+    directive = directive_pair[1]
     hashword = directive.hashword
     if not hashword in all_directives:
         return PreprocessorDiagnostic(diag_to_number["unknown"],
+                                  lineno,
                                   "Unknown directive %s" % hashword)
 
-def multi_line_define(directive):
+def multi_line_define(directive_pair):
+    lineno = directive_pair[0]
+    directive = directive_pair[1]
     last_token = directive.tokens[-1]
     if last_token == "\\":
         return PreprocessorDiagnostic(diag_to_number["multiline"],
+                                  lineno,
                                   "Multi-line define")
 
-def indented_directive(directive):
+def indented_directive(directive_pair):
+    lineno = directive_pair[0]
+    directive = directive_pair[1]
+
     if not (directive.raw_text[0] in preprocessor_prefixes):
         return PreprocessorDiagnostic(diag_to_number["whitespace"],
+                              lineno,
                               "Preprocessor directive starts with whitespace")
 
-def complex_if_condition(directive):
+def complex_if_condition(directive_pair):
+    lineno = directive_pair[0]
+    directive = directive_pair[1]
+
     def has_logic_operator(t):
         return (t.find("&&") != -1 or t.find("||") != -1)
     def has_comparison_operator(t):
@@ -80,18 +93,25 @@ def complex_if_condition(directive):
         or too_many_tokens
         or non_alphanum > non_alphanum_threshold):
         return PreprocessorDiagnostic(diag_to_number["complex_if_condition"],
+                              lineno,
                               "Logical condition looks to be overly complex")
 
-def space_after_leading_symbol(directive):
+def space_after_leading_symbol(directive_pair):
+    lineno = directive_pair[0]
+    directive = directive_pair[1]
 
     txt = directive.raw_text.strip()
     if len(txt) < 2:
         return
     if txt[1] in (" ", "\t"):
         return PreprocessorDiagnostic(diag_to_number["space_after_leading"],
+                              lineno,
                               "Space between leading symbol and keyword")
 
-def suggest_inline_function(directive):
+def suggest_inline_function(directive_pair):
+    lineno = directive_pair[0]
+    directive = directive_pair[1]
+
     # A macrodefine with non-empty parameter list
     # TODO this function would certainly benefit from a proper lexer
     if not directive_is_definition(directive.hashword):
@@ -122,8 +142,9 @@ def suggest_inline_function(directive):
         # otherwise, there is at least one symbol after "("
     
     return PreprocessorDiagnostic(diag_to_number["suggest_inline_function"],
+                            lineno,
                             "Suggest defining a static inline function instead")
-    
+
 
 def run_simple_checks(pre_line_pairs):
     single_line_checks = (unknown_directive,
@@ -136,7 +157,7 @@ def run_simple_checks(pre_line_pairs):
     res = list()
     for pre_pair in pre_line_pairs:
         for check in single_line_checks:
-            w = check(pre_pair[1])
+            w = check(pre_pair)
             if w:
                 res.append((pre_pair[0], w.wcode, w.details))
     return res
