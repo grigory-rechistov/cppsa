@@ -126,17 +126,21 @@ class ComplexIfConditionDiagnostic(BaseDiagnostic):
             or non_alphanum > non_alphanum_threshold):
             return ComplexIfConditionDiagnostic(lineno, directive)
 
-def space_after_leading_symbol(directive):
-    lineno = directive.lineno
 
+class SpaceAfterHashDiagnostic(BaseDiagnostic):
+    def __init__(self, lineno, directive):
+        super().__init__(lineno, directive)
+        self.wcode = diag_to_number["space_after_leading"]
+        self.details = "Space between leading symbol and keyword"
 
-    txt = directive.raw_text.strip()
-    if len(txt) < 2:
-        return
-    if txt[1] in (" ", "\t"):
-        return PreprocessorDiagnostic(diag_to_number["space_after_leading"],
-                              lineno,
-                              "Space between leading symbol and keyword")
+    @staticmethod
+    def apply(directive):
+        lineno = directive.lineno
+        txt = directive.raw_text.strip()
+        if len(txt) < 2:
+            return
+        if txt[1] in (" ", "\t"):
+            return SpaceAfterHashDiagnostic(lineno, directive)
 
 def suggest_inline_function(directive):
     lineno = directive.lineno
@@ -180,7 +184,7 @@ def run_simple_checks(pre_lines):
                           MultiLineDiagnostic.apply,
                           LeadingWhitespaceDiagnostic.apply,
                           ComplexIfConditionDiagnostic.apply,
-                          space_after_leading_symbol,
+                          SpaceAfterHashDiagnostic.apply,
                           suggest_inline_function)
 
     res = list()

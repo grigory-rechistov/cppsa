@@ -114,17 +114,17 @@ class TestSimpleDirectives(unittest.TestCase):
         res = ComplexIfConditionDiagnostic.apply(directive)
         self.assertTrue(res)
 
-    def test_space_after_leading_symbol(self):
+    def test_space_after_hash(self):
         directive = PreprocessorDirective("# define F", 1)
-        res = space_after_leading_symbol(directive)
+        res = SpaceAfterHashDiagnostic.apply(directive)
         self.assertTrue(res)
         directive = PreprocessorDirective("#\tdefine F", 1)
-        res = space_after_leading_symbol(directive)
+        res = SpaceAfterHashDiagnostic.apply(directive)
         self.assertTrue(res)
 
     def test_more_spaces_around_leading_symbol(self):
         directive = PreprocessorDirective(" #   include <lib>", 1)
-        res = space_after_leading_symbol(directive)
+        res = SpaceAfterHashDiagnostic.apply(directive)
         self.assertTrue(res)
 
     def test_suggest_inline_function_give_suggestion(self):
