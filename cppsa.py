@@ -15,7 +15,8 @@ from simple import run_simple_checks
 from multichecks import run_complex_checks
 
 def read_whitelist(input_file, global_whitelist):
-    "Return a collection of suppressed warnings for input_file"
+    """global_whitelist contains lines for many files.
+       Return a collection of suppressed warnings for input_file"""
     res = list()
     with open(global_whitelist) as f:
         for line in f:
@@ -50,7 +51,8 @@ def extract_preprocessor_lines(input_file):
 def filter_diagnostics(diagnostics, whitelist):
     res = list()
     for diag in diagnostics:
-        (lineno, wcode, _) = diag
+        lineno = diag.lineno
+        wcode = diag.wcode
         suppressed = False
         for (white_lineno, white_wcode) in whitelist:
             if lineno == white_lineno and wcode == white_wcode:
@@ -118,7 +120,7 @@ def main(argv):
     displayed_diagnostics = filter_diagnostics(diagnostics, whitelist)
     if not quiet:
         for diag in displayed_diagnostics:
-            (lineno, wcode, details) = diag
+            (lineno, wcode, details) = (diag.lineno, diag.wcode, diag.details)
             print("%s:%d: W%d: %s" % (input_file, lineno, wcode, details) )
             if diag.text is not None:
                 verbatim_text = diag.text

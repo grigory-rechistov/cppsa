@@ -195,6 +195,6 @@ def run_simple_checks(pre_lines):
         for check in single_line_checks:
             w = check(pre_line)
             if w:
-                res.append((w.lineno, w.wcode, w.details))
+                res.append(w)
     return res
 
