@@ -3,14 +3,24 @@ from directives import all_directives, preprocessor_prefixes
 from directives import directive_contains_condition, directive_is_definition
 from diagcodes import diag_to_number
 
+class UnknownDirectiveDiagnostic:
+    # TODO make it child of PreprocessorDiagnostic
+    def __init__(self, lineno, directive):
+        assert isinstance(lineno, int)
+        self.wcode = diag_to_number["unknown"]
+        self.lineno = lineno
+        self.text = directive.raw_text
+        self.details = "Unknown directive %s" % directive.hashword
+    def __repr__(self):
+        return "<%s W%d at %d: %s>" % (type(self).__name__,
+                                      self.wcode, self.lineno, self.details)
+
 def unknown_directive(directive):
     lineno = directive.lineno
 
     hashword = directive.hashword
     if not hashword in all_directives:
-        return PreprocessorDiagnostic(diag_to_number["unknown"],
-                                  lineno,
-                                  "Unknown directive %s" % hashword)
+        return UnknownDirectiveDiagnostic(lineno, directive)
 
 def multi_line_define(directive):
     lineno = directive.lineno
