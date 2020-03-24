@@ -42,7 +42,7 @@ def extract_preprocessor_lines(input_file):
         lineno = 1
         for line in f:
             if line_is_preprocessor_directive(line):
-                res.append((lineno, PreprocessorDirective(line)))
+                res.append(PreprocessorDirective(line, lineno))
             lineno += 1
     return res
 
@@ -60,10 +60,10 @@ def filter_diagnostics(diagnostics, whitelist):
             res.append(diag)
     return res
 
-def get_print_line(line_pairs, lineno):
-    # TODO save reference to the original line in the diagnostic, instead of
+def get_print_line(pre_lines, lineno):
+    # TODO save reference to the original text line in the diagnostic, instead of
     # hunting for it once again. This is ineffective and stupid
-    candidates = list(t[1].raw_text for t in line_pairs if t[0] == lineno)
+    candidates = list(t.raw_text for t in pre_lines if t.lineno == lineno)
     assert len(candidates) == 1, "The line could not disappear from the file"
     res = candidates[0]
     if res[-1] == "\n":
@@ -108,11 +108,11 @@ def main(argv):
     else:
         whitelist = list()
 
-    pre_line_pairs = extract_preprocessor_lines(input_file)
+    pre_lines = extract_preprocessor_lines(input_file)
 
     diagnostics = list()
-    diagnostics += run_simple_checks(pre_line_pairs)
-    diagnostics += run_complex_checks(pre_line_pairs)
+    diagnostics += run_simple_checks(pre_lines)
+    diagnostics += run_complex_checks(pre_lines)
 
     # Filter collected diagnostics against the whitelist
     displayed_diagnostics = filter_diagnostics(diagnostics, whitelist)
@@ -120,7 +120,7 @@ def main(argv):
         for diag in displayed_diagnostics:
             (lineno, wcode, details) = diag
             print("%s:%d: W%d: %s" % (input_file, lineno, wcode, details) )
-            verbatim_text = get_print_line(pre_line_pairs, lineno)
+            verbatim_text = get_print_line(pre_lines, lineno)
             print("    %s" % verbatim_text)
 
     return 0 if len(displayed_diagnostics) == 0 else 1

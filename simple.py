@@ -3,36 +3,36 @@ from directives import all_directives, preprocessor_prefixes
 from directives import directive_contains_condition, directive_is_definition
 from diagcodes import diag_to_number
 
-def unknown_directive(directive_pair):
-    lineno = directive_pair[0]
-    directive = directive_pair[1]
+def unknown_directive(directive):
+    lineno = directive.lineno
+
     hashword = directive.hashword
     if not hashword in all_directives:
         return PreprocessorDiagnostic(diag_to_number["unknown"],
                                   lineno,
                                   "Unknown directive %s" % hashword)
 
-def multi_line_define(directive_pair):
-    lineno = directive_pair[0]
-    directive = directive_pair[1]
+def multi_line_define(directive):
+    lineno = directive.lineno
+
     last_token = directive.tokens[-1]
     if last_token == "\\":
         return PreprocessorDiagnostic(diag_to_number["multiline"],
                                   lineno,
                                   "Multi-line define")
 
-def indented_directive(directive_pair):
-    lineno = directive_pair[0]
-    directive = directive_pair[1]
+def indented_directive(directive):
+    lineno = directive.lineno
+
 
     if not (directive.raw_text[0] in preprocessor_prefixes):
         return PreprocessorDiagnostic(diag_to_number["whitespace"],
                               lineno,
                               "Preprocessor directive starts with whitespace")
 
-def complex_if_condition(directive_pair):
-    lineno = directive_pair[0]
-    directive = directive_pair[1]
+def complex_if_condition(directive):
+    lineno = directive.lineno
+
 
     def has_logic_operator(t):
         return (t.find("&&") != -1 or t.find("||") != -1)
@@ -96,9 +96,9 @@ def complex_if_condition(directive_pair):
                               lineno,
                               "Logical condition looks to be overly complex")
 
-def space_after_leading_symbol(directive_pair):
-    lineno = directive_pair[0]
-    directive = directive_pair[1]
+def space_after_leading_symbol(directive):
+    lineno = directive.lineno
+
 
     txt = directive.raw_text.strip()
     if len(txt) < 2:
@@ -108,9 +108,8 @@ def space_after_leading_symbol(directive_pair):
                               lineno,
                               "Space between leading symbol and keyword")
 
-def suggest_inline_function(directive_pair):
-    lineno = directive_pair[0]
-    directive = directive_pair[1]
+def suggest_inline_function(directive):
+    lineno = directive.lineno
 
     # A macrodefine with non-empty parameter list
     # TODO this function would certainly benefit from a proper lexer
@@ -146,7 +145,7 @@ def suggest_inline_function(directive_pair):
                             "Suggest defining a static inline function instead")
 
 
-def run_simple_checks(pre_line_pairs):
+def run_simple_checks(pre_lines):
     single_line_checks = (unknown_directive,
                           multi_line_define,
                           indented_directive,
@@ -155,10 +154,10 @@ def run_simple_checks(pre_line_pairs):
                           suggest_inline_function)
 
     res = list()
-    for pre_pair in pre_line_pairs:
+    for pre_line in pre_lines:
         for check in single_line_checks:
-            w = check(pre_pair)
+            w = check(pre_line)
             if w:
-                res.append((pre_pair[0], w.wcode, w.details))
+                res.append((w.lineno, w.wcode, w.details))
     return res
 

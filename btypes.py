@@ -2,9 +2,9 @@
 
 class PreprocessorDirective:
     "Partially parsed source file line"
-    # TODO constructor should accept lineno
-    def __init__(self, txt):
+    def __init__(self, txt, lineno):
         self.raw_text = txt
+        self.lineno = lineno
         stripped_txt = txt.strip()
         assert len(stripped_txt) > 0, "Line must have at least one symbol (# or similar)"
 
@@ -23,7 +23,8 @@ class PreprocessorDirective:
         self.tokens = tokens
         self.hashword = self.tokens[0]
     def __repr__(self):
-        return "<PreprocessorDirective %s>" % (repr(self.raw_text))
+        return "<PreprocessorDirective at %d %s>" % (self.lineno,
+                                                     repr(self.raw_text))
 
 class PreprocessorDiagnostic:
     "Base class for all diagnostics"

@@ -2,7 +2,7 @@ from btypes import PreprocessorDiagnostic
 from directives import is_open_directive, is_close_directive
 from diagcodes import diag_to_number
 
-def exsessive_ifdef_nesting(dirs):
+def exsessive_ifdef_nesting(pre_lines):
     # TODO: this check reports both exsessively deep and unbalanced nesting.
     # Probably these should be handled in two different functions
     def deep_warning(lineno, opened_if_stack):
@@ -22,7 +22,8 @@ def exsessive_ifdef_nesting(dirs):
     # TODO should be increased by one if __cplusplus guards are used
     max_level = 2
     opened_if_stack = [] # To track encompassing if-endif blocks
-    for (lineno, directive) in dirs:
+    for directive in pre_lines:
+        lineno = directive.lineno
         if is_open_directive(directive.hashword):
             level += 1
             if level > max_level:
@@ -50,7 +51,7 @@ def exsessive_ifdef_nesting(dirs):
                     unbalanced_dia.details))
     return res
 
-def unmarked_remote_endif(dirs):
+def unmarked_remote_endif(pre_lines):
 #    import pdb; pdb.set_trace()
     # Check that
         #if COND
@@ -60,7 +61,8 @@ def unmarked_remote_endif(dirs):
     max_distance = 4
     res = list()
     opened_if_stack = []
-    for (lineno, directive) in dirs:
+    for directive in pre_lines:
+        lineno = directive.lineno
         if is_open_directive(directive.hashword):
             opened_if_stack.append((lineno, directive))
         elif is_close_directive(directive.hashword):
@@ -88,13 +90,13 @@ def unmarked_remote_endif(dirs):
     return res
 
 
-def run_complex_checks(pre_line_pairs):
+def run_complex_checks(pre_lines):
     multi_line_checks = (exsessive_ifdef_nesting,
                          unmarked_remote_endif,
     )
     res = list()
 
     for check in multi_line_checks:
-        res_list = check(pre_line_pairs)
+        res_list = check(pre_lines)
         res += res_list
     return res
