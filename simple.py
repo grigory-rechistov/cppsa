@@ -183,18 +183,18 @@ class SuggestInlineDiagnostic(BaseDiagnostic):
 
 
 def run_simple_checks(pre_lines):
-    single_line_checks = (UnknownDirectiveDiagnostic.apply,
-                          MultiLineDiagnostic.apply,
-                          LeadingWhitespaceDiagnostic.apply,
-                          ComplexIfConditionDiagnostic.apply,
-                          SpaceAfterHashDiagnostic.apply,
-                          SuggestInlineDiagnostic.apply)
+    all_single_line_diagnostics = (UnknownDirectiveDiagnostic,
+                          MultiLineDiagnostic,
+                          LeadingWhitespaceDiagnostic,
+                          ComplexIfConditionDiagnostic,
+                          SpaceAfterHashDiagnostic,
+                          SuggestInlineDiagnostic)
 
     res = list()
     for pre_line in pre_lines:
-        for check in single_line_checks:
-            w = check(pre_line)
-            if w:
+        for dia_class in all_single_line_diagnostics:
+            w = dia_class.apply(pre_line)
+            if w is not None:
                 res.append(w)
     return res
 
