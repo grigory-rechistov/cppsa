@@ -3,8 +3,6 @@ from directives import is_open_directive, is_close_directive
 from diagcodes import diag_to_number
 
 def exsessive_ifdef_nesting(pre_lines):
-    # TODO: this check reports both exsessively deep and unbalanced nesting.
-    # Probably these should be handled in two different functions
     def deep_warning(lineno, opened_if_stack):
         description = "Nesting of if-endif is too deep."
 
@@ -32,9 +30,20 @@ def exsessive_ifdef_nesting(pre_lines):
         elif is_close_directive(directive.hashword):
             level += -1
             if len(opened_if_stack) == 0:
-                # TODO extract into an own "unbalanced" diagnostic
-                # Either we missed an opening #if, or there is unbalanced #endif
-                # in the input. Abort further processing.
+                # Unbalanced #endif. Abort further processing.
+                break
+            opened_if_stack.pop()
+    return res
+
+def unbalanced_if_endif(pre_lines):
+    res = list()
+    opened_if_stack = []
+    for directive in pre_lines:
+        lineno = directive.lineno
+        if is_open_directive(directive.hashword):
+            opened_if_stack.append(lineno)
+        elif is_close_directive(directive.hashword):
+            if len(opened_if_stack) == 0:
                 unbalanced_dia = PreprocessorDiagnostic(diag_to_number["unbalanced"],
                                     lineno,
                                     "Unbalanced closing directive found")
@@ -43,7 +52,8 @@ def exsessive_ifdef_nesting(pre_lines):
                 break
             opened_if_stack.pop()
 
-    if level > 0:
+    while len(opened_if_stack) > 0:
+        lineno = opened_if_stack.pop()
         unbalanced_dia = PreprocessorDiagnostic(diag_to_number["unbalanced"],
                                     lineno,
                                     "Unbalanced opening directive found")
@@ -93,6 +103,7 @@ def unmarked_remote_endif(pre_lines):
 def run_complex_checks(pre_lines):
     multi_line_checks = (exsessive_ifdef_nesting,
                          unmarked_remote_endif,
+                         unbalanced_if_endif,
     )
     res = list()
 

@@ -180,12 +180,31 @@ class TestMultiLineDirectives(unittest.TestCase):
         dirs = (
             PreprocessorDirective("#ifdef A", 1),
         )
-        res = exsessive_ifdef_nesting(dirs)
+        res = unbalanced_if_endif(dirs)
         self.assertTrue(len(res) == 1)
         dirs = (
             PreprocessorDirective("#endif", 1),
         )
-        res = exsessive_ifdef_nesting(dirs)
+        res = unbalanced_if_endif(dirs)
+        self.assertTrue(len(res) == 1)
+
+    def test_multiple_unbalanced_ifdefs(self):
+        dirs = (
+            PreprocessorDirective("#ifdef A", 1),
+            PreprocessorDirective("#ifdef B", 2),
+            PreprocessorDirective("#ifdef C", 3),
+        )
+        res = unbalanced_if_endif(dirs)
+        self.assertTrue(len(res) == 3)
+
+    def test_multiple_unbalanced_endifs(self):
+        dirs = (
+            PreprocessorDirective("#endif A", 1),
+            PreprocessorDirective("#endif B", 2),
+            PreprocessorDirective("#endif C", 3),
+        )
+        res = unbalanced_if_endif(dirs)
+        # Only the first unbalanced #endif is reported
         self.assertTrue(len(res) == 1)
 
     def test_unmarked_remote_endif(self):
