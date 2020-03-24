@@ -14,10 +14,6 @@ from diagcodes import diag_to_number
 from simple import run_simple_checks
 from multichecks import run_complex_checks
 
-# TODO turn these into knobs
-verbose = False
-print_line = True
-
 def read_whitelist(input_file, global_whitelist):
     "Return a collection of suppressed warnings for input_file"
     res = list()
@@ -120,10 +116,10 @@ def main(argv):
 
     # Filter collected diagnostics against the whitelist
     displayed_diagnostics = filter_diagnostics(diagnostics, whitelist)
-    for diag in displayed_diagnostics:
-        (lineno, wcode, details) = diag
-        print("%s:%d: W%d: %s" % (input_file, lineno, wcode, details) )
-        if print_line:
+    if not quiet:
+        for diag in displayed_diagnostics:
+            (lineno, wcode, details) = diag
+            print("%s:%d: W%d: %s" % (input_file, lineno, wcode, details) )
             verbatim_text = get_print_line(pre_line_pairs, lineno)
             print("    %s" % verbatim_text)
 
