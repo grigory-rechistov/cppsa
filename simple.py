@@ -1,13 +1,11 @@
 # Collection of simple diagnostics working on a single text line
 
-from btypes import PreprocessorDiagnostic
 from directives import all_directives, preprocessor_prefixes
 from directives import directive_contains_condition, directive_is_definition
 from diagcodes import diag_to_number
 
 
 class BaseDiagnostic:
-    # TODO replace it, use instead of PreprocessorDiagnostic
     # TODO no need to pass lineno, it can be extracted from directive
     def __init__(self, lineno, directive):
         assert isinstance(lineno, int)

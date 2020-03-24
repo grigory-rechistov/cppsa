@@ -1,39 +1,60 @@
-from btypes import PreprocessorDiagnostic
+from btypes import PreprocessorDirective
+from btypes import PreprocessorDiagnostic # TODO remove
+
 from directives import is_open_directive, is_close_directive
 from diagcodes import diag_to_number
 
-def exsessive_ifdef_nesting(pre_lines):
-    def deep_warning(lineno, opened_if_stack):
-        description = "Nesting of if-endif is too deep."
+class BaseMultilineDiagnostic:
+    def __init__(self, directive, description):
+        assert isinstance(description, str)
+        assert isinstance(directive, PreprocessorDirective)
+        self.lineno = directive.lineno
+        self.text = directive.raw_text
 
-        for prev_lineno in reversed(opened_if_stack):
-            description += (" Earlier, an if-block"
-                            " was opened at line %d." % prev_lineno)
-        new_diag = PreprocessorDiagnostic(diag_to_number["deepnest"], lineno,
-                                          description)
-        return (lineno, new_diag.wcode, new_diag.details)
+        self.wcode = 0
+        self.details = description
+    def __repr__(self):
+        return "<%s W%d at %d: %s>" % (type(self).__name__,
+                                      self.wcode, self.lineno, self.details)
 
-    res = list()
-    level = 0
-    # Complain after level has exceeded threshold until it has been reduced
-    # TODO should be increased by one for headers if they have include guards
-    # TODO should be increased by one if __cplusplus guards are used
-    max_level = 2
-    opened_if_stack = [] # To track encompassing if-endif blocks
-    for directive in pre_lines:
-        lineno = directive.lineno
-        if is_open_directive(directive.hashword):
-            level += 1
-            if level > max_level:
-                res.append(deep_warning(lineno, opened_if_stack))
-            opened_if_stack.append(lineno)
-        elif is_close_directive(directive.hashword):
-            level += -1
-            if len(opened_if_stack) == 0:
-                # Unbalanced #endif. Abort further processing.
-                break
-            opened_if_stack.pop()
-    return res
+def make_deep_warning(opened_if_stack):
+    description = "Nesting of if-endif is too deep."
+
+    for prev_lineno in reversed(opened_if_stack):
+        description += (" Earlier, an if-block"
+                        " was opened at line %d." % prev_lineno)
+    return description
+
+class IfdefNestingDiagnostic(BaseMultilineDiagnostic):
+    def __init__(self, directive, description):
+        super().__init__(directive, description)
+        self.wcode = diag_to_number["deepnest"]
+
+    @staticmethod
+    def apply_to_lines(pre_lines):
+        # Complain after level has exceeded threshold until it has been reduced
+        res = list()
+        level = 0
+        # TODO should be increased by one for headers if they have include guards
+        # TODO should be increased by one if __cplusplus guards are used
+        max_level = 2
+        opened_if_stack = [] # To track encompassing if-endif blocks
+        for directive in pre_lines:
+            lineno = directive.lineno
+            if is_open_directive(directive.hashword):
+                level += 1
+                if level > max_level:
+                    description = make_deep_warning(opened_if_stack)
+                    diagnostic = IfdefNestingDiagnostic(directive, description)
+                    res.append(diagnostic)
+                opened_if_stack.append(lineno)
+            elif is_close_directive(directive.hashword):
+                level += -1
+                if len(opened_if_stack) == 0:
+                    # Unbalanced #endif. Abort further processing.
+                    break
+                opened_if_stack.pop()
+        return res
 
 def unbalanced_if_endif(pre_lines):
     res = list()
@@ -102,7 +123,7 @@ def unmarked_remote_endif(pre_lines):
 
 
 def run_complex_checks(pre_lines):
-    multi_line_checks = (exsessive_ifdef_nesting,
+    multi_line_checks = (IfdefNestingDiagnostic.apply_to_lines,
                          unmarked_remote_endif,
                          unbalanced_if_endif,
     )

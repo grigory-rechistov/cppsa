@@ -160,7 +160,7 @@ class TestMultiLineDirectives(unittest.TestCase):
             PreprocessorDirective("#endif", 3)
         )
 
-        res = exsessive_ifdef_nesting(dirs)
+        res = IfdefNestingDiagnostic.apply_to_lines(dirs)
         self.assertTrue(len(res) == 0)
 
     def test_deep_ifdef_nesting(self):
@@ -174,7 +174,7 @@ class TestMultiLineDirectives(unittest.TestCase):
             PreprocessorDirective("#endif", 13),
         )
 
-        res = exsessive_ifdef_nesting(dirs)
+        res = IfdefNestingDiagnostic.apply_to_lines(dirs)
         self.assertTrue(len(res) == 1)
 
     def test_unbalanced_ifdef_nesting(self):
