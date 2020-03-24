@@ -142,41 +142,46 @@ class SpaceAfterHashDiagnostic(BaseDiagnostic):
         if txt[1] in (" ", "\t"):
             return SpaceAfterHashDiagnostic(lineno, directive)
 
-def suggest_inline_function(directive):
-    lineno = directive.lineno
+class SuggestInlineDiagnostic(BaseDiagnostic):
+    def __init__(self, lineno, directive):
+        super().__init__(lineno, directive)
+        self.wcode = diag_to_number["suggest_inline_function"]
+        self.details = "Suggest defining a static inline function instead"
 
-    # A macrodefine with non-empty parameter list
-    # TODO this function would certainly benefit from a proper lexer
-    if not directive_is_definition(directive.hashword):
-        return
-    if len(directive.tokens) < 2:
-        return
-    
-    first_token = directive.tokens[1]
-    # The bracket must be glued to the symbol
-    opening_bracket = first_token.find("(")
-    if opening_bracket == -1: # it is a #define without parameters
-        return
-    closing_bracket = first_token.find(")")
-    if closing_bracket != -1:
-        if closing_bracket == opening_bracket + 1:
-            # No parameters between brackets "()"
+    @staticmethod
+    def apply(directive):
+        lineno = directive.lineno
+
+        # A macrodefine with non-empty parameter list
+        # TODO this function would certainly benefit from a proper lexer
+        if not directive_is_definition(directive.hashword):
             return
-        # else something is between brackets
-    else:
-        # Look for the bracket in the next token
-        if len(directive.tokens) < 3:
-            # Malformed directive, bail out
+        if len(directive.tokens) < 2:
             return
-        second_token = directive.tokens[2]
-        if second_token[0] == ")":
-            # No symbols between "(" in first_token and ")" in second_token
+
+        first_token = directive.tokens[1]
+        # The bracket must be glued to the symbol
+        opening_bracket = first_token.find("(")
+        if opening_bracket == -1: # it is a #define without parameters
             return
-        # otherwise, there is at least one symbol after "("
-    
-    return PreprocessorDiagnostic(diag_to_number["suggest_inline_function"],
-                            lineno,
-                            "Suggest defining a static inline function instead")
+        closing_bracket = first_token.find(")")
+        if closing_bracket != -1:
+            if closing_bracket == opening_bracket + 1:
+                # No parameters between brackets "()"
+                return
+            # else something is between brackets
+        else:
+            # Look for the bracket in the next token
+            if len(directive.tokens) < 3:
+                # Malformed directive, bail out
+                return
+            second_token = directive.tokens[2]
+            if second_token[0] == ")":
+                # No symbols between "(" in first_token and ")" in second_token
+                return
+            # otherwise, there is at least one symbol after "("
+
+        return SuggestInlineDiagnostic(lineno, directive)
 
 
 def run_simple_checks(pre_lines):
@@ -185,7 +190,7 @@ def run_simple_checks(pre_lines):
                           LeadingWhitespaceDiagnostic.apply,
                           ComplexIfConditionDiagnostic.apply,
                           SpaceAfterHashDiagnostic.apply,
-                          suggest_inline_function)
+                          SuggestInlineDiagnostic.apply)
 
     res = list()
     for pre_line in pre_lines:

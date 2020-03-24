@@ -129,27 +129,27 @@ class TestSimpleDirectives(unittest.TestCase):
 
     def test_suggest_inline_function_give_suggestion(self):
         directive = PreprocessorDirective("#define MAX(a,b) (a) > (b) ? (a):(b)", 1)
-        res = suggest_inline_function(directive)
+        res = SuggestInlineDiagnostic.apply(directive)
         self.assertTrue(res)
         directive = PreprocessorDirective("#define A( a ) /* nothing */", 1)
-        res = suggest_inline_function(directive)
+        res = SuggestInlineDiagnostic.apply(directive)
         self.assertTrue(res)
         directive = PreprocessorDirective("#define A( a) substitution", 1)
-        res = suggest_inline_function(directive)
+        res = SuggestInlineDiagnostic.apply(directive)
         self.assertTrue(res)
         directive = PreprocessorDirective("#define A(a , b) substitution", 1)
-        res = suggest_inline_function(directive)
+        res = SuggestInlineDiagnostic.apply(directive)
         self.assertTrue(res)
 
     def test_suggest_inline_function_reject_suggestion(self):
         directive = PreprocessorDirective("#define MAX_INT 10000",1 )
-        res = suggest_inline_function(directive)
+        res = SuggestInlineDiagnostic.apply(directive)
         self.assertFalse(res)
         directive = PreprocessorDirective("#define A (a)", 1)
-        res = suggest_inline_function(directive)
+        res = SuggestInlineDiagnostic.apply(directive)
         self.assertFalse(res)
         directive = PreprocessorDirective("#define TIMESTAMP() do_nasty_global_stuff", 1)
-        res = suggest_inline_function(directive)
+        res = SuggestInlineDiagnostic.apply(directive)
         self.assertFalse(res)
 
 
