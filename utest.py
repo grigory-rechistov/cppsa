@@ -14,27 +14,27 @@ class TestInputFiles(unittest.TestCase):
     # intercepted to keep the test report clean. main() should accept -quiet
 
     def test_main_on_basic(self):
-        argv = ['cpssa', 'test/basic']
+        argv = ['cpssa', '-q', 'test/basic']
         res = cpssa_main(argv)
         self.assertTrue(res == 0)
 
     def test_main_on_unknown(self):
-        argv = ['cpssa', 'test/unknown']
+        argv = ['cpssa', '-q', 'test/unknown']
         res = cpssa_main(argv)
         self.assertTrue(res == 1)
 
     def test_main_on_unknown_with_whitelist(self):
-        argv = ['cpssa', 'test/unknown', 'test/unknown-wl']
+        argv = ['cpssa', '-q', '--whitelist', 'test/unknown-wl', 'test/unknown']
         res = cpssa_main(argv)
         self.assertFalse(res)
 
     def test_main_on_unmarked_endif(self):
-        argv = ['cpssa', 'test/unmarked-endif']
+        argv = ['cpssa', '-q', 'test/unmarked-endif']
         res = cpssa_main(argv)
         self.assertTrue(res == 1)
 
     def test_main_on_suggest_inline_func(self):
-        argv = ['cpssa', 'test/inline-func']
+        argv = ['cpssa', '-q', 'test/inline-func']
         res = cpssa_main(argv)
         self.assertTrue(res == 1)
 

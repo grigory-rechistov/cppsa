@@ -2,6 +2,7 @@
 # C preprocessor static analyzer
 
 import sys
+import argparse
 
 from btypes import WarningDescription, PreprocessorDirective
 from directives import preprocessor_prefixes
@@ -50,10 +51,6 @@ def extract_preprocessor_lines(input_file):
     return res
 
 
-def usage(argv):
-    print("Usage: %s <input> [whitelist]" % argv[0])
-    return 2
-
 def filter_diagnostics(diagnostics, whitelist):
     res = list()
     for diag in diagnostics:
@@ -77,17 +74,41 @@ def get_print_line(line_pairs, lineno):
         res = res[:-1]
     return res
 
+def parse_args(argv):
+    parser = argparse.ArgumentParser(description=
+                                     "Analyze preprocessor directives")
+    parser.add_argument("-q", "--quiet", action="store_true",
+                        help="Do not show diagnostics, only return error code")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                help="Be extra verbose (cannot be used together with --quiet)")
+    parser.add_argument("-W", "--whitelist", type=str, default=None,
+                        help="Whitelist of ignored warnings")
+
+
+    parser.add_argument('input_file', metavar='input_file', type=str,
+                        help='File to be analyzed')
+
+    opts = parser.parse_args(argv)
+    if opts.verbose and opts.quiet:
+        print("Flags --quiet and --verbose cannot be used together");
+        parser.print_help()
+        sys.exit(2)
+    return opts
+
 def main(argv):
-    # TODO introduce proper argparser
     # TODO have a separate whitelist of top level macrodefines: TARGET_HAS_ etc.
-    if len(argv) < 2:
-        return usage(argv)
-    input_file = argv[1]
+
+    opts = parse_args(argv[1:])
+
+    input_file = opts.input_file
+    verbose = opts.verbose
+    quiet = opts.quiet
+    whitelist_name = opts.whitelist
 
     if verbose:
         print("Processing %s" % input_file)
-    if len(argv) == 3:
-        whitelist = read_whitelist(input_file, argv[2])
+    if whitelist_name is not None:
+        whitelist = read_whitelist(input_file, whitelist_name)
     else:
         whitelist = list()
 
