@@ -6,10 +6,8 @@ from diagcodes import diag_to_number
 
 
 class BaseDiagnostic:
-    # TODO no need to pass lineno, it can be extracted from directive
-    def __init__(self, lineno, directive):
-        assert isinstance(lineno, int)
-        self.lineno = lineno
+    def __init__(self, directive):
+        self.lineno = directive.lineno
         self.text = directive.raw_text
 
         self.wcode = 0
@@ -20,8 +18,8 @@ class BaseDiagnostic:
 
 
 class UnknownDirectiveDiagnostic(BaseDiagnostic):
-    def __init__(self, lineno, directive):
-        super().__init__(lineno, directive)
+    def __init__(self, directive):
+        super().__init__(directive)
         self.wcode = diag_to_number["unknown"]
         self.details = "Unknown directive %s" % directive.hashword
     @staticmethod
@@ -29,11 +27,11 @@ class UnknownDirectiveDiagnostic(BaseDiagnostic):
         lineno = directive.lineno
         hashword = directive.hashword
         if not hashword in all_directives:
-            return UnknownDirectiveDiagnostic(lineno, directive)
+            return UnknownDirectiveDiagnostic(directive)
 
 class MultiLineDiagnostic(BaseDiagnostic):
-    def __init__(self, lineno, directive):
-        super().__init__(lineno, directive)
+    def __init__(self, directive):
+        super().__init__(directive)
         self.wcode = diag_to_number["multiline"]
         self.details = "Multi-line define"
     @staticmethod
@@ -41,19 +39,19 @@ class MultiLineDiagnostic(BaseDiagnostic):
         lineno = directive.lineno
         last_token = directive.tokens[-1]
         if last_token == "\\":
-            return MultiLineDiagnostic(lineno, directive)
+            return MultiLineDiagnostic(directive)
 
 
 class LeadingWhitespaceDiagnostic(BaseDiagnostic):
-    def __init__(self, lineno, directive):
-        super().__init__(lineno, directive)
+    def __init__(self, directive):
+        super().__init__(directive)
         self.wcode = diag_to_number["whitespace"]
         self.details = "Preprocessor directive starts with whitespace"
     @staticmethod
     def apply(directive):
         lineno = directive.lineno
         if not (directive.raw_text[0] in preprocessor_prefixes):
-            return LeadingWhitespaceDiagnostic(lineno, directive)
+            return LeadingWhitespaceDiagnostic(directive)
 
 def has_logic_operator(t):
     return (t.find("&&") != -1 or t.find("||") != -1)
@@ -92,8 +90,8 @@ def count_noncomment_tokens(directive):
     return len(tokens)
 
 class ComplexIfConditionDiagnostic(BaseDiagnostic):
-    def __init__(self, lineno, directive):
-        super().__init__(lineno, directive)
+    def __init__(self, directive):
+        super().__init__(directive)
         self.wcode = diag_to_number["complex_if_condition"]
         self.details = "Logical condition looks to be overly complex"
 
@@ -122,12 +120,12 @@ class ComplexIfConditionDiagnostic(BaseDiagnostic):
         if (has_operators
             or too_many_tokens
             or non_alphanum > non_alphanum_threshold):
-            return ComplexIfConditionDiagnostic(lineno, directive)
+            return ComplexIfConditionDiagnostic(directive)
 
 
 class SpaceAfterHashDiagnostic(BaseDiagnostic):
-    def __init__(self, lineno, directive):
-        super().__init__(lineno, directive)
+    def __init__(self, directive):
+        super().__init__(directive)
         self.wcode = diag_to_number["space_after_leading"]
         self.details = "Space between leading symbol and keyword"
 
@@ -138,11 +136,11 @@ class SpaceAfterHashDiagnostic(BaseDiagnostic):
         if len(txt) < 2:
             return
         if txt[1] in (" ", "\t"):
-            return SpaceAfterHashDiagnostic(lineno, directive)
+            return SpaceAfterHashDiagnostic(directive)
 
 class SuggestInlineDiagnostic(BaseDiagnostic):
-    def __init__(self, lineno, directive):
-        super().__init__(lineno, directive)
+    def __init__(self, directive):
+        super().__init__(directive)
         self.wcode = diag_to_number["suggest_inline_function"]
         self.details = "Suggest defining a static inline function instead"
 
@@ -179,7 +177,7 @@ class SuggestInlineDiagnostic(BaseDiagnostic):
                 return
             # otherwise, there is at least one symbol after "("
 
-        return SuggestInlineDiagnostic(lineno, directive)
+        return SuggestInlineDiagnostic(directive)
 
 
 def run_simple_checks(pre_lines):
