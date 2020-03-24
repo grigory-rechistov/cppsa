@@ -12,7 +12,7 @@ class BaseDiagnostic:
         assert isinstance(lineno, int)
         self.lineno = lineno
         self.text = directive.raw_text
-        
+
         self.wcode = 0
         self.details = "unknown diagnostic"
     def __repr__(self):

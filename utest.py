@@ -44,7 +44,7 @@ class TestConstants(unittest.TestCase):
         values = set(diag_to_number.values())
         self.assertEqual(len(keys), len(values))
 
-class TestSimpleDirectives(unittest.TestCase):
+class TestDirectiveTokens(unittest.TestCase):
     def test_space_between_hash_and_keyword(self):
         directive = PreprocessorDirective("# define A",1 )
         self.assertEqual(directive.hashword, "#define")
@@ -60,6 +60,9 @@ class TestSimpleDirectives(unittest.TestCase):
         self.assertTrue(is_close_directive("#endif"))
         self.assertFalse(is_close_directive("#if"))
         self.assertFalse(is_close_directive("#else"))
+
+
+class TestSimpleDirectives(unittest.TestCase):
 
     def test_indented_directive(self):
         directive = PreprocessorDirective("        #define SYMBOL", 1)
