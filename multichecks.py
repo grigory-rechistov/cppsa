@@ -1,5 +1,4 @@
 from btypes import PreprocessorDirective
-from btypes import PreprocessorDiagnostic # TODO remove
 
 from directives import is_open_directive, is_close_directive
 from diagcodes import diag_to_number

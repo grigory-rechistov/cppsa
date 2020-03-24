@@ -26,15 +26,3 @@ class PreprocessorDirective:
         return "<PreprocessorDirective at %d %s>" % (self.lineno,
                                                      repr(self.raw_text))
 
-class PreprocessorDiagnostic:
-    "Base class for all diagnostics"
-    def __init__(self, wcode, lineno, details = None):
-        self.wcode = wcode
-        assert isinstance(lineno, int)
-        self.lineno = lineno
-        self.details = details
-        self.text = None # TODO To be provided in child classes
-    def __repr__(self):
-        return "<PreprocessorDiagnostic %d at %d: %s>" % (
-                            self.wcode, self.lineno, self.details)
-
