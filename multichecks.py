@@ -44,7 +44,8 @@ def unbalanced_if_endif(pre_lines):
             opened_if_stack.append(lineno)
         elif is_close_directive(directive.hashword):
             if len(opened_if_stack) == 0:
-                unbalanced_dia = PreprocessorDiagnostic(diag_to_number["unbalanced"],
+                unbalanced_dia = PreprocessorDiagnostic(
+                                    diag_to_number["unbalanced_endif"],
                                     lineno,
                                     "Unbalanced closing directive found")
                 res.append((lineno, unbalanced_dia.wcode,
@@ -54,7 +55,7 @@ def unbalanced_if_endif(pre_lines):
 
     while len(opened_if_stack) > 0:
         lineno = opened_if_stack.pop()
-        unbalanced_dia = PreprocessorDiagnostic(diag_to_number["unbalanced"],
+        unbalanced_dia = PreprocessorDiagnostic(diag_to_number["unbalanced_if"],
                                     lineno,
                                     "Unbalanced opening directive found")
         res.append((lineno, unbalanced_dia.wcode,
