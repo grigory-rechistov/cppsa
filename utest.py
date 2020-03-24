@@ -10,9 +10,7 @@ from multichecks import *
 import unittest
 
 class TestInputFiles(unittest.TestCase):
-    # TODO Some of tests in this group write to stdout. Maybe stdout should be
-    # intercepted to keep the test report clean. main() should accept -quiet
-
+    # Pass '-q' to main to suppress litter in stdout
     def test_main_on_basic(self):
         argv = ['cpssa', '-q', 'test/basic']
         res = cpssa_main(argv)
