@@ -1,35 +1,49 @@
+# Collection of simple diagnostics working on a single text line
+
 from btypes import PreprocessorDiagnostic
 from directives import all_directives, preprocessor_prefixes
 from directives import directive_contains_condition, directive_is_definition
 from diagcodes import diag_to_number
 
-class UnknownDirectiveDiagnostic:
-    # TODO make it child of PreprocessorDiagnostic
+
+class BaseDiagnostic:
+    # TODO replace it, use instead of PreprocessorDiagnostic
     def __init__(self, lineno, directive):
         assert isinstance(lineno, int)
-        self.wcode = diag_to_number["unknown"]
         self.lineno = lineno
         self.text = directive.raw_text
-        self.details = "Unknown directive %s" % directive.hashword
+        
+        self.wcode = 0
+        self.details = "unknown diagnostic"
     def __repr__(self):
         return "<%s W%d at %d: %s>" % (type(self).__name__,
                                       self.wcode, self.lineno, self.details)
+    
 
+class UnknownDirectiveDiagnostic(BaseDiagnostic):
+    def __init__(self, lineno, directive):
+        super().__init__(lineno, directive)
+        self.wcode = diag_to_number["unknown"]
+        self.details = "Unknown directive %s" % directive.hashword
+
+# TODO make it a static factory method .apply(directive) of UnknownDirectiveDiagnostic
 def unknown_directive(directive):
     lineno = directive.lineno
-
     hashword = directive.hashword
     if not hashword in all_directives:
         return UnknownDirectiveDiagnostic(lineno, directive)
 
+class MultiLineDiagnostic(BaseDiagnostic):
+    def __init__(self, lineno, directive):
+        super().__init__(lineno, directive)
+        self.wcode = diag_to_number["multiline"]
+        self.details = "Multi-line define"    
+
 def multi_line_define(directive):
     lineno = directive.lineno
-
     last_token = directive.tokens[-1]
     if last_token == "\\":
-        return PreprocessorDiagnostic(diag_to_number["multiline"],
-                                  lineno,
-                                  "Multi-line define")
+        return MultiLineDiagnostic(lineno, directive)
 
 def indented_directive(directive):
     lineno = directive.lineno
