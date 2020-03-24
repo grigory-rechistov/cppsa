@@ -240,9 +240,10 @@ class TestMultiLineDirectives(unittest.TestCase):
         res = unmarked_remote_endif(dirs)
         self.assertTrue(len(res) == 0)
 
-        # TODO the comment should match #ifndef's condition, but it is unimplemented
         dirs = (
             PreprocessorDirective("#ifndef A", 1),
+            # TODO the comment should (fuzzily) match #ifndef's condition,
+            # but it is unimplemented
             PreprocessorDirective("#endif // some unrelated comment", 1000),
         )
         res = unmarked_remote_endif(dirs)
