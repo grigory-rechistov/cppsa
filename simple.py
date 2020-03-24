@@ -16,7 +16,6 @@ class BaseDiagnostic:
         return "<%s W%d at %d: %s>" % (type(self).__name__,
                                       self.wcode, self.lineno, self.details)
 
-
 class UnknownDirectiveDiagnostic(BaseDiagnostic):
     def __init__(self, directive):
         super().__init__(directive)
@@ -179,6 +178,38 @@ class SuggestInlineDiagnostic(BaseDiagnostic):
 
         return SuggestInlineDiagnostic(directive)
 
+class If0DeadCodeDiagnostic(BaseDiagnostic):
+    def __init__(self, directive):
+        super().__init__(directive)
+        self.wcode = diag_to_number["if_0_dead_code"]
+        self.details = "Code block is always discarded. Consider removing it"
+    @staticmethod
+    def apply(directive):
+        if len(directive.tokens) < 2:
+            return
+        hashword = directive.hashword
+        condition = directive.tokens[1]
+
+        if directive_contains_condition(hashword) and condition == "0":
+            return If0DeadCodeDiagnostic(directive)
+
+class IfAlwaysTrueDiagnostic(BaseDiagnostic):
+    def __init__(self, directive):
+        super().__init__(directive)
+        self.wcode = diag_to_number["if_always_true"]
+        self.details = ("Code block is always included." +
+                        " Remove surrounding directives")
+    @staticmethod
+    def apply(directive):
+        if len(directive.tokens) < 2:
+            return
+        hashword = directive.hashword
+        condition = directive.tokens[1]
+
+        # TODO add detection of more trivially true expressions?
+        if directive_contains_condition(hashword) and condition == "1":
+            return If0DeadCodeDiagnostic(directive)
+
 
 def run_simple_checks(pre_lines):
     all_single_line_diagnostics = (UnknownDirectiveDiagnostic,
@@ -186,7 +217,10 @@ def run_simple_checks(pre_lines):
                           LeadingWhitespaceDiagnostic,
                           ComplexIfConditionDiagnostic,
                           SpaceAfterHashDiagnostic,
-                          SuggestInlineDiagnostic)
+                          SuggestInlineDiagnostic,
+                          If0DeadCodeDiagnostic,
+                          IfAlwaysTrueDiagnostic,
+    )
 
     res = list()
     for pre_line in pre_lines:

@@ -142,7 +142,7 @@ class TestSimpleDirectives(unittest.TestCase):
         self.assertTrue(res)
 
     def test_suggest_inline_function_reject_suggestion(self):
-        directive = PreprocessorDirective("#define MAX_INT 10000",1 )
+        directive = PreprocessorDirective("#define MAX_INT 10000", 1)
         res = SuggestInlineDiagnostic.apply(directive)
         self.assertFalse(res)
         directive = PreprocessorDirective("#define A (a)", 1)
@@ -152,6 +152,15 @@ class TestSimpleDirectives(unittest.TestCase):
         res = SuggestInlineDiagnostic.apply(directive)
         self.assertFalse(res)
 
+    def test_if_0(self):
+        directive = PreprocessorDirective("#if 0", 1)
+        res = If0DeadCodeDiagnostic.apply(directive)
+        self.assertTrue(res)
+
+    def test_if_always_true(self):
+        directive = PreprocessorDirective("#if 1", 1)
+        res = IfAlwaysTrueDiagnostic.apply(directive)
+        self.assertTrue(res)
 
 class TestMultiLineDirectives(unittest.TestCase):
     def test_shallow_ifdef_nesting(self):

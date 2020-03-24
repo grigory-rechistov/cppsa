@@ -10,9 +10,10 @@ diag_to_number = {
         "unmarked_endif": 8,
         "suggest_inline_function" : 9,
         "unbalanced_endif": 10,
+        "if_0_dead_code": 11,
+        "if_always_true": 12,
         # TODO "undef_is_bad"
         # TODO suggest_enum_or_const
-        # TODO remove_if_0_endif_dead_code
         # TODO mixed_procent_and_sharp_directives: %ifdef #if %endif #endif
     }
 
