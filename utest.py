@@ -70,7 +70,7 @@ class TestSimpleDirectives(unittest.TestCase):
 
     def test_unknown_directive(self):
         directive = PreprocessorDirective("#unknown I am something unknown", 1)
-        res = unknown_directive(directive)
+        res = UnknownDirectiveDiagnostic.apply(directive)
         self.assertTrue(res)
 
     def test_multi_line_define_separate(self):

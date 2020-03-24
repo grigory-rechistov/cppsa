@@ -26,12 +26,12 @@ class UnknownDirectiveDiagnostic(BaseDiagnostic):
         self.wcode = diag_to_number["unknown"]
         self.details = "Unknown directive %s" % directive.hashword
 
-# TODO make it a static factory method .apply(directive) of UnknownDirectiveDiagnostic
-def unknown_directive(directive):
-    lineno = directive.lineno
-    hashword = directive.hashword
-    if not hashword in all_directives:
-        return UnknownDirectiveDiagnostic(lineno, directive)
+    @staticmethod
+    def apply(directive):
+        lineno = directive.lineno
+        hashword = directive.hashword
+        if not hashword in all_directives:
+            return UnknownDirectiveDiagnostic(lineno, directive)
 
 class MultiLineDiagnostic(BaseDiagnostic):
     def __init__(self, lineno, directive):
@@ -170,7 +170,7 @@ def suggest_inline_function(directive):
 
 
 def run_simple_checks(pre_lines):
-    single_line_checks = (unknown_directive,
+    single_line_checks = (UnknownDirectiveDiagnostic.apply,
                           multi_line_define,
                           indented_directive,
                           complex_if_condition,
