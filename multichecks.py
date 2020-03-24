@@ -70,9 +70,9 @@ class UnbalancedEndifDiagnostic(BaseMultilineDiagnostic):
                 opened_if_stack.append(lineno)
             elif is_close_directive(directive.hashword):
                 if len(opened_if_stack) == 0:
-                    unbalanced_dia = UnbalancedEndifDiagnostic(directive,
+                    unbalanced_endif = UnbalancedEndifDiagnostic(directive,
                                         "Unbalanced closing directive found")
-                    res.append(unbalanced_dia)
+                    res.append(unbalanced_endif)
                     break
                 opened_if_stack.pop()
         return res
@@ -98,56 +98,58 @@ class UnbalancedIfDiagnostic(BaseMultilineDiagnostic):
 
         while len(opened_if_stack) > 0:
             lineno = opened_if_stack.pop()
-            unbalanced_dia = UnbalancedIfDiagnostic(directive,
+            unbalanced_if = UnbalancedIfDiagnostic(directive,
                                         "Unbalanced opening directive found")
-            res.append(unbalanced_dia)
+            res.append(unbalanced_if)
         return res
 
+class UnmarkedEndifDiagnostic(BaseMultilineDiagnostic):
+    def __init__(self, directive, description):
+        super().__init__(directive, description)
+        self.wcode = diag_to_number["unmarked_endif"]
 
-def unmarked_remote_endif(pre_lines):
-#    import pdb; pdb.set_trace()
-    # Check that
-        #if COND
-        # has matching comment at:
-        #endif // COND
-    # or similar
-    max_distance = 4
-    res = list()
-    opened_if_stack = []
-    for directive in pre_lines:
-        lineno = directive.lineno
-        if is_open_directive(directive.hashword):
-            opened_if_stack.append((lineno, directive))
-        elif is_close_directive(directive.hashword):
-            if len(opened_if_stack) == 0:
-                # unbalanced #endif. Abort further processing.
-                break
-            (start_lineno, start_directive) = opened_if_stack.pop()
-            start_text = start_directive.raw_text.strip()
-            scope_distance = lineno - start_lineno
-            assert scope_distance > 0
-            if scope_distance <= max_distance:
-                continue # Close lines are visible, no need to warn about
-            endif_tokens = directive.tokens
-            # TODO Ideally, we need to check if the text of the comment
-            # matched the #if condition, but given it is a freeform text,
-            # it can not be reliably done for complex cases.
-            # Instead, require that some comment is present
-            if len(endif_tokens) < 2: # #endif plus at least something
-                unmarked_w = PreprocessorDiagnostic(diag_to_number["unmarked_endif"],
-                  lineno,
-                  ("No trailing comment to match opening" +
-                  " directive '%s' at line %d (%d lines apart)") %
-                      (start_text, start_lineno, scope_distance))
-                res.append((lineno, unmarked_w.wcode, unmarked_w.details))
-    return res
+    @staticmethod
+    def apply_to_lines(pre_lines):
+        # Check that
+            #if COND
+            # has matching comment at endif:
+            #endif // COND
+        # or similar
+        max_distance = 4
+        res = list()
+        opened_if_stack = []
+        for directive in pre_lines:
+            lineno = directive.lineno
+            if is_open_directive(directive.hashword):
+                opened_if_stack.append((lineno, directive))
+            elif is_close_directive(directive.hashword):
+                if len(opened_if_stack) == 0:
+                    # unbalanced #endif. Abort further processing.
+                    break
+                (start_lineno, start_directive) = opened_if_stack.pop()
+                start_text = start_directive.raw_text.strip()
+                scope_distance = lineno - start_lineno
+                assert scope_distance > 0
+                if scope_distance <= max_distance:
+                    continue # Close lines are visible, no need to warn about
+                endif_tokens = directive.tokens
+                # TODO Ideally, we need to check if the text of the comment
+                # matched the #if condition, but given it is a freeform text,
+                # it can not be reliably done for complex cases.
+                # Instead, require that some comment is present
+                if len(endif_tokens) < 2: # #endif plus at least something
+                    description = ("No trailing comment to match opening" +
+                                    " directive '%s' at line %d (%d lines apart)" % (start_text, start_lineno, scope_distance))
+                    unmarked_w = UnmarkedEndifDiagnostic(directive, description)
+                    res.append(unmarked_w)
+        return res
 
 
 def run_complex_checks(pre_lines):
     multi_line_checks = (IfdefNestingDiagnostic.apply_to_lines,
                          UnbalancedEndifDiagnostic.apply_to_lines,
                          UnbalancedIfDiagnostic.apply_to_lines,
-                         unmarked_remote_endif,
+                         UnmarkedEndifDiagnostic.apply_to_lines,
     )
     res = list()
 

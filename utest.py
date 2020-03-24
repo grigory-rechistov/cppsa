@@ -215,7 +215,7 @@ class TestMultiLineDirectives(unittest.TestCase):
             PreprocessorDirective("#ifdef A", 1),
             PreprocessorDirective("#endif", 1000),
         )
-        res = unmarked_remote_endif(dirs)
+        res = UnmarkedEndifDiagnostic.apply_to_lines(dirs)
         self.assertTrue(len(res) == 1)
 
     def test_unmarked_close_endif(self):
@@ -223,14 +223,14 @@ class TestMultiLineDirectives(unittest.TestCase):
             PreprocessorDirective("#ifdef A", 1),
             PreprocessorDirective("#endif", 2),
         )
-        res = unmarked_remote_endif(dirs)
+        res = UnmarkedEndifDiagnostic.apply_to_lines(dirs)
         self.assertTrue(len(res) == 0)
 
         dirs = (
             PreprocessorDirective("#if A == B", 1),
             PreprocessorDirective("#endif", 2),
         )
-        res = unmarked_remote_endif(dirs)
+        res = UnmarkedEndifDiagnostic.apply_to_lines(dirs)
         self.assertTrue(len(res) == 0)
 
 
@@ -239,7 +239,7 @@ class TestMultiLineDirectives(unittest.TestCase):
             PreprocessorDirective("#ifdef A", 1),
             PreprocessorDirective("#endif //A", 1000),
         )
-        res = unmarked_remote_endif(dirs)
+        res = UnmarkedEndifDiagnostic.apply_to_lines(dirs)
         self.assertTrue(len(res) == 0)
 
         dirs = (
@@ -248,7 +248,7 @@ class TestMultiLineDirectives(unittest.TestCase):
             # but it is unimplemented
             PreprocessorDirective("#endif // some unrelated comment", 1000),
         )
-        res = unmarked_remote_endif(dirs)
+        res = UnmarkedEndifDiagnostic.apply_to_lines(dirs)
         self.assertTrue(len(res) == 0)
 
 
