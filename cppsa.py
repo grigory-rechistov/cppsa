@@ -62,16 +62,6 @@ def filter_diagnostics(diagnostics, whitelist):
             res.append(diag)
     return res
 
-def get_print_line(pre_lines, lineno):
-    # TODO save reference to the original text line in the diagnostic, instead of
-    # hunting for it once again. This is ineffective and stupid
-    candidates = list(t.raw_text for t in pre_lines if t.lineno == lineno)
-    assert len(candidates) == 1, "The line could not disappear from the file"
-    res = candidates[0]
-    if res[-1] == "\n":
-        res = res[:-1]
-    return res
-
 def parse_args(argv):
     parser = argparse.ArgumentParser(description=
                                      "Analyze preprocessor directives")
@@ -122,12 +112,8 @@ def main(argv):
         for diag in displayed_diagnostics:
             (lineno, wcode, details) = (diag.lineno, diag.wcode, diag.details)
             print("%s:%d: W%d: %s" % (input_file, lineno, wcode, details) )
-            if diag.text is not None:
-                verbatim_text = diag.text
-            else:
-                # TODO this line will be redundant once all diagnostics store
-                # the text line inside themselves
-                verbatim_text = get_print_line(pre_lines, lineno)
+            assert diag.text is not None
+            verbatim_text = diag.text.strip('\n')
             print("    %s" % verbatim_text)
 
     return 0 if len(displayed_diagnostics) == 0 else 1
