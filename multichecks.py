@@ -1,4 +1,4 @@
-from btypes import WarningDescription
+from btypes import PreprocessorDiagnostic
 from directives import is_open_directive, is_close_directive
 from diagcodes import diag_to_number
 
@@ -11,7 +11,7 @@ def exsessive_ifdef_nesting(dirs):
         for prev_lineno in reversed(opened_if_stack):
             description += (" Earlier, an if-block"
                             " was opened at line %d." % prev_lineno)
-        new_diag = WarningDescription(diag_to_number["deepnest"],
+        new_diag = PreprocessorDiagnostic(diag_to_number["deepnest"],
                                           description)
         return (lineno, new_diag.wcode, new_diag.details)
 
@@ -33,7 +33,7 @@ def exsessive_ifdef_nesting(dirs):
             if len(opened_if_stack) == 0:
                 # Either we missed an opening #if, or there is unbalanced #endif
                 # in the input. Abort further processing.
-                unbalanced_dia = WarningDescription(diag_to_number["unbalanced"],
+                unbalanced_dia = PreprocessorDiagnostic(diag_to_number["unbalanced"],
                                       "Unbalanced closing directive found")
                 res.append((lineno, unbalanced_dia.wcode,
                             unbalanced_dia.details))
@@ -41,7 +41,7 @@ def exsessive_ifdef_nesting(dirs):
             opened_if_stack.pop()
 
     if level > 0:
-        unbalanced_dia = WarningDescription(diag_to_number["unbalanced"],
+        unbalanced_dia = PreprocessorDiagnostic(diag_to_number["unbalanced"],
                                       "Unbalanced opening directive found")
         res.append((lineno, unbalanced_dia.wcode,
                     unbalanced_dia.details))
@@ -76,7 +76,7 @@ def unmarked_remote_endif(dirs):
             # it can not be reliably done for complex cases.
             # Instead, require that some comment is present
             if len(endif_tokens) < 2: # #endif plus at least something
-                unmarked_w = WarningDescription(diag_to_number["unmarked_endif"],
+                unmarked_w = PreprocessorDiagnostic(diag_to_number["unmarked_endif"],
                   ("No trailing comment to match opening" +
                   " directive '%s' at line %d (%d lines apart)") %
                       (start_text, start_lineno, scope_distance))

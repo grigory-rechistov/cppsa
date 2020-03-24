@@ -4,7 +4,7 @@
 import sys
 import argparse
 
-from btypes import WarningDescription, PreprocessorDirective
+from btypes import PreprocessorDirective
 from directives import preprocessor_prefixes
 
 from directives import is_open_directive, is_close_directive

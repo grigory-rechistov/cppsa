@@ -1,4 +1,4 @@
-from btypes import WarningDescription
+from btypes import PreprocessorDiagnostic
 from directives import all_directives, preprocessor_prefixes
 from directives import directive_contains_condition, directive_is_definition
 from diagcodes import diag_to_number
@@ -6,18 +6,18 @@ from diagcodes import diag_to_number
 def unknown_directive(directive):
     hashword = directive.hashword
     if not hashword in all_directives:
-        return WarningDescription(diag_to_number["unknown"],
+        return PreprocessorDiagnostic(diag_to_number["unknown"],
                                   "Unknown directive %s" % hashword)
 
 def multi_line_define(directive):
     last_token = directive.tokens[-1]
     if last_token == "\\":
-        return WarningDescription(diag_to_number["multiline"],
+        return PreprocessorDiagnostic(diag_to_number["multiline"],
                                   "Multi-line define")
 
 def indented_directive(directive):
     if not (directive.raw_text[0] in preprocessor_prefixes):
-        return WarningDescription(diag_to_number["whitespace"],
+        return PreprocessorDiagnostic(diag_to_number["whitespace"],
                               "Preprocessor directive starts with whitespace")
 
 def complex_if_condition(directive):
@@ -79,7 +79,7 @@ def complex_if_condition(directive):
     if (has_operators
         or too_many_tokens
         or non_alphanum > non_alphanum_threshold):
-        return WarningDescription(diag_to_number["complex_if_condition"],
+        return PreprocessorDiagnostic(diag_to_number["complex_if_condition"],
                               "Logical condition looks to be overly complex")
 
 def space_after_leading_symbol(directive):
@@ -88,7 +88,7 @@ def space_after_leading_symbol(directive):
     if len(txt) < 2:
         return
     if txt[1] in (" ", "\t"):
-        return WarningDescription(diag_to_number["space_after_leading"],
+        return PreprocessorDiagnostic(diag_to_number["space_after_leading"],
                               "Space between leading symbol and keyword")
 
 def suggest_inline_function(directive):
@@ -121,7 +121,7 @@ def suggest_inline_function(directive):
             return
         # otherwise, there is at least one symbol after "("
     
-    return WarningDescription(diag_to_number["suggest_inline_function"],
+    return PreprocessorDiagnostic(diag_to_number["suggest_inline_function"],
                             "Suggest defining a static inline function instead")
     
 

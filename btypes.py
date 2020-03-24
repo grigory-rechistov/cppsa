@@ -22,10 +22,11 @@ class PreprocessorDirective:
     def __repr__(self):
         return "<PreprocessorDirective %s>" % (repr(self.raw_text))
 
-class WarningDescription:
+class PreprocessorDiagnostic:
+    "Base class for all diagnostics"
     def __init__(self, wcode, details):
         self.wcode = wcode
         self.details = details
     def __repr__(self):
-        return "<WarningDescription %d %s>" % (self.wcode, self.details)
+        return "<PreprocessorDiagnostic %d %s>" % (self.wcode, self.details)
 
