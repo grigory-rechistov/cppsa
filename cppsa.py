@@ -120,7 +120,12 @@ def main(argv):
         for diag in displayed_diagnostics:
             (lineno, wcode, details) = diag
             print("%s:%d: W%d: %s" % (input_file, lineno, wcode, details) )
-            verbatim_text = get_print_line(pre_lines, lineno)
+            if diag.text is not None:
+                verbatim_text = diag.text
+            else:
+                # TODO this line will be redundant once all diagnostics store
+                # the text line inside themselves
+                verbatim_text = get_print_line(pre_lines, lineno)
             print("    %s" % verbatim_text)
 
     return 0 if len(displayed_diagnostics) == 0 else 1

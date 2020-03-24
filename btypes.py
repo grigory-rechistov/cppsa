@@ -33,6 +33,7 @@ class PreprocessorDiagnostic:
         assert isinstance(lineno, int)
         self.lineno = lineno
         self.details = details
+        self.text = None # TODO To be provided in child classes
     def __repr__(self):
         return "<PreprocessorDiagnostic %d at %d: %s>" % (
                             self.wcode, self.lineno, self.details)
