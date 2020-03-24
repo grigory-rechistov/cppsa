@@ -8,6 +8,7 @@ from diagcodes import diag_to_number
 
 class BaseDiagnostic:
     # TODO replace it, use instead of PreprocessorDiagnostic
+    # TODO no need to pass lineno, it can be extracted from directive
     def __init__(self, lineno, directive):
         assert isinstance(lineno, int)
         self.lineno = lineno
@@ -18,7 +19,7 @@ class BaseDiagnostic:
     def __repr__(self):
         return "<%s W%d at %d: %s>" % (type(self).__name__,
                                       self.wcode, self.lineno, self.details)
-    
+
 
 class UnknownDirectiveDiagnostic(BaseDiagnostic):
     def __init__(self, lineno, directive):
@@ -36,7 +37,7 @@ class MultiLineDiagnostic(BaseDiagnostic):
     def __init__(self, lineno, directive):
         super().__init__(lineno, directive)
         self.wcode = diag_to_number["multiline"]
-        self.details = "Multi-line define"    
+        self.details = "Multi-line define"
     @staticmethod
     def apply(directive):
         lineno = directive.lineno
@@ -44,78 +45,86 @@ class MultiLineDiagnostic(BaseDiagnostic):
         if last_token == "\\":
             return MultiLineDiagnostic(lineno, directive)
 
-def indented_directive(directive):
-    lineno = directive.lineno
-    if not (directive.raw_text[0] in preprocessor_prefixes):
-        return PreprocessorDiagnostic(diag_to_number["whitespace"],
-                              lineno,
-                              "Preprocessor directive starts with whitespace")
 
-def complex_if_condition(directive):
-    lineno = directive.lineno
+class LeadingWhitespaceDiagnostic(BaseDiagnostic):
+    def __init__(self, lineno, directive):
+        super().__init__(lineno, directive)
+        self.wcode = diag_to_number["whitespace"]
+        self.details = "Preprocessor directive starts with whitespace"
+    @staticmethod
+    def apply(directive):
+        lineno = directive.lineno
+        if not (directive.raw_text[0] in preprocessor_prefixes):
+            return LeadingWhitespaceDiagnostic(lineno, directive)
 
+def has_logic_operator(t):
+    return (t.find("&&") != -1 or t.find("||") != -1)
+def has_comparison_operator(t):
+    return (t.find(">") != -1 or t.find("<") != -1)
 
-    def has_logic_operator(t):
-        return (t.find("&&") != -1 or t.find("||") != -1)
-    def has_comparison_operator(t):
-        return (t.find(">") != -1 or t.find("<") != -1)
+def count_non_alphanum(txt):
+    txt = txt.replace(" ", "")
+    ok_symbols = set("_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
+    alphanum_count = sum(c in ok_symbols for c in txt)
+    return len(txt) - alphanum_count
 
-    def count_non_alphanum(txt):
-        txt = txt.replace(" ", "")
-        ok_symbols = set("_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
-        alphanum_count = sum(c in ok_symbols for c in txt)
-        return len(txt) - alphanum_count
+def tokens_without_comment(tokens):
+    # Disregard a trailing comment, i.e. anything after // or /*
+    res = []
+    for token in tokens:
+        if token.find("//") != -1 or token.find("/*") != -1:
+            # TODO ideally, split trailing comment in current token, but
+            # preserve the head
+            break
+        res.append(token)
+    return res
 
-    def tokens_without_comment(tokens):
-        # Disregard a trailing comment, i.e. anything after // or /*
-        res = []
-        for token in tokens:
-            if token.find("//") != -1 or token.find("/*") != -1:
-                # TODO ideally, split trailing comment in current token, but
-                # preserve the head
-                break
-            res.append(token)
-        return res
+def has_any_operators(directive):
+    has_operators = False
+    tokens = directive.tokens[1:]
+    tokens = tokens_without_comment(tokens)
+    for token in tokens:
+        has_operators = (has_operators or has_logic_operator(token) or
+                     has_comparison_operator(token))
+    return has_operators
 
-    def look_for_operators(directive):
-        has_operators = False
-        tokens = directive.tokens[1:]
-        tokens = tokens_without_comment(tokens)
-        for token in tokens:
-            has_operators = (has_operators or has_logic_operator(token) or
-                         has_comparison_operator(token))
-        return has_operators
+def count_noncomment_tokens(directive):
+    tokens = directive.tokens[1:]
+    tokens = tokens_without_comment(tokens)
+    return len(tokens)
 
-    def count_noncomment_tokens(directive):
-        tokens = directive.tokens[1:]
-        tokens = tokens_without_comment(tokens)
-        return len(tokens)
+class ComplexIfConditionDiagnostic(BaseDiagnostic):
+    def __init__(self, lineno, directive):
+        super().__init__(lineno, directive)
+        self.wcode = diag_to_number["complex_if_condition"]
+        self.details = "Logical condition looks to be overly complex"
 
-    if not directive_contains_condition(directive.hashword):
-        return
-    # Generally, we want to allow only expressions using a single variable, e.g.
-    #     #if SYMBOL, #if !SYMBOL, # if defined(SYMBOL) etc.
-    # We want to notify about logic expressions, such as
-    #     #if defined(EXPR1) && defined (EXPR2)
-    # TODO A proper scanner/parser should be here. For now, just apply
-    # a few heuristics.
-    has_operators = look_for_operators(directive)
+    @staticmethod
+    def apply(directive):
+        lineno = directive.lineno
+        if not directive_contains_condition(directive.hashword):
+            return
+        # Generally, we want to allow only expressions using a single variable, e.g.
+        #     #if SYMBOL, #if !SYMBOL, # if defined(SYMBOL) etc.
+        # We want to notify about logic expressions, such as
+        #     #if defined(EXPR1) && defined (EXPR2)
+        # TODO A proper scanner/parser should be here. For now, just apply
+        # a few heuristics.
+        has_operators = has_any_operators(directive)
 
-    # Consider wordiness a bad sign
-    tokens_threshold = 5 # an arbitrary value, really
-    too_many_tokens = count_noncomment_tokens(directive) > tokens_threshold
+        # Consider wordiness a bad sign
+        tokens_threshold = 5 # an arbitrary value, really
+        too_many_tokens = count_noncomment_tokens(directive) > tokens_threshold
 
-    # In absense of proper tokenizer, consider all non-alphanumeric symbols as
-    # potential token delimeters
-    non_alphanum = count_non_alphanum(directive.raw_text)
+        # In absense of proper tokenizer, consider all non-alphanumeric symbols as
+        # potential token delimeters
+        non_alphanum = count_non_alphanum(directive.raw_text)
 
-    non_alphanum_threshold = 6
-    if (has_operators
-        or too_many_tokens
-        or non_alphanum > non_alphanum_threshold):
-        return PreprocessorDiagnostic(diag_to_number["complex_if_condition"],
-                              lineno,
-                              "Logical condition looks to be overly complex")
+        non_alphanum_threshold = 6
+        if (has_operators
+            or too_many_tokens
+            or non_alphanum > non_alphanum_threshold):
+            return ComplexIfConditionDiagnostic(lineno, directive)
 
 def space_after_leading_symbol(directive):
     lineno = directive.lineno
@@ -169,8 +178,8 @@ def suggest_inline_function(directive):
 def run_simple_checks(pre_lines):
     single_line_checks = (UnknownDirectiveDiagnostic.apply,
                           MultiLineDiagnostic.apply,
-                          indented_directive,
-                          complex_if_condition,
+                          LeadingWhitespaceDiagnostic.apply,
+                          ComplexIfConditionDiagnostic.apply,
                           space_after_leading_symbol,
                           suggest_inline_function)
 

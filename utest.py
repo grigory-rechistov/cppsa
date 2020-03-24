@@ -66,7 +66,7 @@ class TestSimpleDirectives(unittest.TestCase):
 
     def test_indented_directive(self):
         directive = PreprocessorDirective("        #define SYMBOL", 1)
-        res = indented_directive(directive)
+        res = LeadingWhitespaceDiagnostic.apply(directive)
         self.assertTrue(res)
 
     def test_unknown_directive(self):
@@ -86,32 +86,32 @@ class TestSimpleDirectives(unittest.TestCase):
 
     def test_complex_if_condition_for_simple(self):
         directive = PreprocessorDirective("#if CONDITION", 1)
-        res = complex_if_condition(directive)
+        res = ComplexIfConditionDiagnostic.apply(directive)
         self.assertFalse(res)
         directive = PreprocessorDirective("#if OS == linux", 1)
-        res = complex_if_condition(directive)
+        res = ComplexIfConditionDiagnostic.apply(directive)
         self.assertFalse(res)
         directive = PreprocessorDirective("#if !TRUE", 1)
-        res = complex_if_condition(directive)
+        res = ComplexIfConditionDiagnostic.apply(directive)
         self.assertFalse(res)
 
     def test_complex_if_condition_for_complex(self):
         directive = PreprocessorDirective("#if LINUX || WINDOWS", 1)
-        res = complex_if_condition(directive)
+        res = ComplexIfConditionDiagnostic.apply(directive)
         self.assertTrue(res)
         directive = PreprocessorDirective("#if !LINUX && WINDOWS", 1)
-        res = complex_if_condition(directive)
+        res = ComplexIfConditionDiagnostic.apply(directive)
         self.assertTrue(res)
 
     def test_complex_if_condition_for_many_tokens(self):
         # Keep spaces between words, they are important for the test
         directive = PreprocessorDirective("#if ( ! ROUNDING_CONTROL ( DEFAULT ) == 4 )", 1)
-        res = complex_if_condition(directive)
+        res = ComplexIfConditionDiagnostic.apply(directive)
         self.assertTrue(res)
 
     def test_complex_if_condition_for_many_special_symbols(self):
         directive = PreprocessorDirective("#if (!ROUNDING_CONTROL(DEFAULT)==4)", 1)
-        res = complex_if_condition(directive)
+        res = ComplexIfConditionDiagnostic.apply(directive)
         self.assertTrue(res)
 
     def test_space_after_leading_symbol(self):
