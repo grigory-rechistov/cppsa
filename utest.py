@@ -1,13 +1,54 @@
 # These are unit tests
 
 from cppsa import main as cpssa_main
-from btypes import PreprocessorDirective
+from btypes import PreprocessorDirective, tokenize
 from directives import is_open_directive, is_close_directive
 
 from simple import *
 from multichecks import *
 
 import unittest
+
+class TestTokenizer(unittest.TestCase):
+    def test_tokenize_empty(self):
+        self.assertEqual(tokenize(""), [])
+        self.assertEqual(tokenize("   "), [])
+        self.assertEqual(tokenize("\n"), [])
+        self.assertEqual(tokenize("  \n"), [])
+        self.assertEqual(tokenize("  \t "), [])
+
+    def test_tokenize_alnum(self):
+        self.assertEqual(tokenize("word"), ["word"])
+        self.assertEqual(tokenize("word another"), ["word", "another"])
+        self.assertEqual(tokenize("#word another"), ["#word", "another"])
+        self.assertEqual(tokenize("#word(another)"), ["#word", "(", "another", ")"])
+        self.assertEqual(tokenize("#word(another)\n"), ["#word", "(", "another", ")"])
+        self.assertEqual(tokenize("word(pa, pb)"), ["word", "(", "pa", ",", "pb", ")"])
+
+    def test_token_pasting(self):
+        self.assertEqual(tokenize("a##b"), ["a", "##", "b"])
+
+    def test_tokenize_underscores_and_digits(self):
+        self.assertEqual(tokenize("many_underscores_in_word"), ["many_underscores_in_word"])
+        self.assertEqual(tokenize("u_n ds2 45c 3.14"), ["u_n", "ds2", "45c", "3.14"])
+
+    def test_tokenize_backslash(self):
+        self.assertEqual(tokenize("\\"), ["\\"])
+        self.assertEqual(tokenize("word\\"), ["word", "\\"])
+        self.assertEqual(tokenize("word\\\n"), ["word", "\\"])
+
+    def test_tokenize_comments(self):
+        self.assertEqual(tokenize("statement /* comment"), ["statement", "/*", "comment"])
+        self.assertEqual(tokenize("statement /*comment"), ["statement", "/*", "comment"])
+        self.assertEqual(tokenize("statement // comment"), ["statement", "//", "comment"])
+        self.assertEqual(tokenize("statement //comment"), ["statement", "//", "comment"])
+        self.assertEqual(tokenize("statement//comment"), ["statement", "//", "comment"])
+
+    def test_tokenize_other(self):
+        self.assertEqual(tokenize("#define LOST()lost"), ["#define", "LOST", "(", ")", "lost"])
+        self.assertEqual(tokenize("#define FOUND( x) not_found"), ["#define", "FOUND", "(", "x", ")", "not_found"])
+
+
 
 class TestInputFiles(unittest.TestCase):
     # Pass '-q' to main to suppress litter in stdout
@@ -168,7 +209,16 @@ class TestMultiLineDirectives(unittest.TestCase):
             PreprocessorDirective("#ifdef A", 1),
             PreprocessorDirective("#endif", 3)
         )
+        res = IfdefNestingDiagnostic.apply_to_lines(dirs)
+        self.assertTrue(len(res) == 0)
 
+    def test_medium_ifdef_nesting(self):
+        dirs = (
+            PreprocessorDirective("#ifdef A", 1),
+            PreprocessorDirective("#if B", 2),
+            PreprocessorDirective("#endif", 3),
+            PreprocessorDirective("#endif", 4),
+        )
         res = IfdefNestingDiagnostic.apply_to_lines(dirs)
         self.assertTrue(len(res) == 0)
 
@@ -185,6 +235,20 @@ class TestMultiLineDirectives(unittest.TestCase):
 
         res = IfdefNestingDiagnostic.apply_to_lines(dirs)
         self.assertTrue(len(res) == 1)
+
+    def test_ifdef_nesting_with_header_guards(self):
+        dirs = (
+            PreprocessorDirective("#ifndef A_H", 1),
+            PreprocessorDirective("#define A_H", 2),
+            PreprocessorDirective("#if C == B", 3),
+            PreprocessorDirective("#ifdef D", 4),
+
+            PreprocessorDirective("#endif // D", 11),
+            PreprocessorDirective("#endif // C == B", 12),
+            PreprocessorDirective("#endif // A_H", 13),
+        )
+        res = IfdefNestingDiagnostic.apply_to_lines(dirs)
+        self.assertTrue(len(res) == 0)
 
     def test_unbalanced_ifdef_nesting(self):
         dirs = (
@@ -259,6 +323,69 @@ class TestMultiLineDirectives(unittest.TestCase):
         )
         res = UnmarkedEndifDiagnostic.apply_to_lines(dirs)
         self.assertTrue(len(res) == 0)
+
+class TestIncludeGuards(unittest.TestCase):
+    def test_include_guard_detection_ifndef(self):
+        dirs = (
+            PreprocessorDirective("#ifndef HEADER_GUARD", 1),
+            PreprocessorDirective("#define HEADER_GUARD", 2),
+            PreprocessorDirective("#endif", 3),
+        )
+        self.assertTrue(sense_for_include_guard(dirs))
+
+    def test_include_guard_detection_if_not_defined(self):
+        dirs = (
+            PreprocessorDirective("#if !defined(HEADER_GUARD)", 1),
+            PreprocessorDirective("#define HEADER_GUARD", 2),
+            PreprocessorDirective("#endif", 3),
+        )
+#        import pdb; pdb.set_trace()
+        self.assertTrue(sense_for_include_guard(dirs))
+
+    def test_include_guard_detection_mismatch_symbol(self):
+        dirs = (
+            PreprocessorDirective("#ifndef HEADER_GUARD", 1),
+            PreprocessorDirective("#define WRONG_SYMBOL", 2),
+            PreprocessorDirective("#endif", 3),
+        )
+        self.assertFalse(sense_for_include_guard(dirs))
+        dirs = (
+            PreprocessorDirective("#if !defined(HEADER_GUARD)", 1),
+            PreprocessorDirective("#define WRONG_SYMBOL", 2),
+            PreprocessorDirective("#endif", 3),
+        )
+        self.assertFalse(sense_for_include_guard(dirs))
+
+    def test_include_guard_detection_something_follows_endif(self):
+        dirs = (
+            PreprocessorDirective("#if !defined(HEADER_GUARD)", 1),
+            PreprocessorDirective("#define HEADER_GUARD", 2),
+            PreprocessorDirective("#endif", 3),
+            PreprocessorDirective("#define EXTRA 2", 10),
+        )
+        self.assertFalse(sense_for_include_guard(dirs))
+        dirs = (
+            PreprocessorDirective("#ifndef HEADER_GUARD", 1),
+            PreprocessorDirective("#define HEADER_GUARD", 2),
+            PreprocessorDirective("#endif", 3),
+            PreprocessorDirective("#define EXTRA 2", 10),
+        )
+        self.assertFalse(sense_for_include_guard(dirs))
+
+    def test_include_guard_detection_missing_defined(self):
+        dirs = (
+            PreprocessorDirective("#if !defined(HEADER_GUARD)", 1),
+            PreprocessorDirective("#include <header>", 2),
+            PreprocessorDirective("#endif", 3),
+
+        )
+        self.assertFalse(sense_for_include_guard(dirs))
+        dirs = (
+            PreprocessorDirective("#if !defined(HEADER_GUARD)", 1),
+            PreprocessorDirective("#endif", 3),
+
+        )
+        self.assertFalse(sense_for_include_guard(dirs))
 
 
 if __name__ == '__main__':

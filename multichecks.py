@@ -1,6 +1,7 @@
 from btypes import PreprocessorDirective
 
 from directives import is_open_directive, is_close_directive
+from directives import DEFINE
 from diagcodes import diag_to_number
 
 class BaseMultilineDiagnostic:
@@ -23,6 +24,35 @@ def make_deep_warning(opened_if_stack):
                         " was opened at line %d." % prev_lineno)
     return description
 
+def sense_for_include_guard(pre_lines):
+    # Quite a fixed understanding what is considered to be include guards is
+    # used
+    if len(pre_lines) < 3:
+        return False
+    ifndef_candidate = pre_lines[0]
+    define_candidate = pre_lines[1]
+    endif_candidate = pre_lines[-1]
+    # Check for all components of a proper guard:
+    # #ifdef SYMBOL_H
+    # define SYMBOL_H
+    # endif
+    if not ifndef_candidate.is_ifndef():
+        return False
+    header_symbol = ifndef_candidate.first_symbol()
+    if not define_candidate.hashword == DEFINE:
+        return False
+    define_symbol = define_candidate.first_symbol()
+    if header_symbol != define_symbol:
+        return False
+    if not is_close_directive(endif_candidate.hashword):
+        return False
+
+    return True
+
+def sense_for_global_cplusplus_guard(pre_lines):
+    # TODO write me
+    return False
+
 class IfdefNestingDiagnostic(BaseMultilineDiagnostic):
     def __init__(self, directive, description):
         super().__init__(directive, description)
@@ -32,10 +62,11 @@ class IfdefNestingDiagnostic(BaseMultilineDiagnostic):
     def apply_to_lines(pre_lines):
         # Complain after level has exceeded threshold until it has been reduced
         res = list()
-        level = 0
-        # TODO should be increased by one for headers if they have include guards
-        # TODO should be increased by one if __cplusplus guards are used
         max_level = 2
+        max_level += 1 if sense_for_include_guard(pre_lines) else 0
+        max_level += 1 if sense_for_global_cplusplus_guard(pre_lines) else 0
+
+        level = 0
         opened_if_stack = [] # To track encompassing if-endif blocks
         for directive in pre_lines:
             lineno = directive.lineno

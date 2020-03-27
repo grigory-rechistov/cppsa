@@ -4,7 +4,6 @@ from directives import all_directives, preprocessor_prefixes
 from directives import directive_contains_condition, directive_is_definition
 from diagcodes import diag_to_number
 
-
 class BaseDiagnostic:
     def __init__(self, directive):
         self.lineno = directive.lineno
@@ -146,35 +145,29 @@ class SuggestInlineDiagnostic(BaseDiagnostic):
     @staticmethod
     def apply(directive):
         lineno = directive.lineno
-
         # A macrodefine with non-empty parameter list
-        # TODO this function would certainly benefit from a proper lexer
+        # #define WORD ( something_not_bracket )
+
         if not directive_is_definition(directive.hashword):
             return
-        if len(directive.tokens) < 2:
+        # Is there enough tokens to contain bare minimum of function-like macro?
+        if len(directive.tokens) < 5:
             return
 
-        first_token = directive.tokens[1]
-        # The bracket must be glued to the symbol
-        opening_bracket = first_token.find("(")
-        if opening_bracket == -1: # it is a #define without parameters
+        #first_token = directive.tokens[1]
+        opening_bracket_candidate = directive.tokens[2]
+        param_candidate = directive.tokens[3]
+        if opening_bracket_candidate != "(":
             return
-        closing_bracket = first_token.find(")")
-        if closing_bracket != -1:
-            if closing_bracket == opening_bracket + 1:
-                # No parameters between brackets "()"
-                return
-            # else something is between brackets
-        else:
-            # Look for the bracket in the next token
-            if len(directive.tokens) < 3:
-                # Malformed directive, bail out
-                return
-            second_token = directive.tokens[2]
-            if second_token[0] == ")":
-                # No symbols between "(" in first_token and ")" in second_token
-                return
-            # otherwise, there is at least one symbol after "("
+        # There must be no spaces between the opening bracket and the previous
+        # letter for the line to be treated as a function-like macro
+        brack_symbol_pos = directive.raw_text.find("(")
+        assert brack_symbol_pos > 0
+        prev_symbol = directive.raw_text[brack_symbol_pos - 1]
+        if prev_symbol.isspace(): # first bracket did not open a parameter list
+            return
+        if param_candidate == ")": # no parameters between brackets
+            return
 
         return SuggestInlineDiagnostic(directive)
 
