@@ -64,11 +64,11 @@ def count_non_alphanum(txt):
 
 def tokens_without_comment(tokens):
     # Disregard a trailing comment, i.e. anything after // or /*
+    # TODO this function would not be needed if a separate pass handled single-
+    #      and multiline comments in the source in advance.
     res = []
     for token in tokens:
-        if token.find("//") != -1 or token.find("/*") != -1:
-            # TODO ideally, split trailing comment in current token, but
-            # preserve the head
+        if token in ("//", "/*"):
             break
         res.append(token)
     return res
@@ -98,9 +98,9 @@ class ComplexIfConditionDiagnostic(BaseDiagnostic):
         lineno = directive.lineno
         if not directive_contains_condition(directive.hashword):
             return
-        # Generally, we want to allow only expressions using a single variable, e.g.
+        # We want to allow only expressions using a single variable, e.g.
         #     #if SYMBOL, #if !SYMBOL, # if defined(SYMBOL) etc.
-        # We want to notify about logic expressions, such as
+        # We want to notify about anything longer, like logic expressions:
         #     #if defined(EXPR1) && defined (EXPR2)
         # TODO A proper scanner/parser should be here. For now, just apply
         # a few heuristics.
@@ -119,7 +119,6 @@ class ComplexIfConditionDiagnostic(BaseDiagnostic):
             or too_many_tokens
             or non_alphanum > non_alphanum_threshold):
             return ComplexIfConditionDiagnostic(directive)
-
 
 class SpaceAfterHashDiagnostic(BaseDiagnostic):
     def __init__(self, directive):
@@ -160,7 +159,8 @@ class SuggestInlineDiagnostic(BaseDiagnostic):
         if opening_bracket_candidate != "(":
             return
         # There must be no spaces between the opening bracket and the previous
-        # letter for the line to be treated as a function-like macro
+        # letter for the line to be treated as a function-like macro. Tokenizer
+        # has eaten all whitespaces, so look for it in raw_text
         brack_symbol_pos = directive.raw_text.find("(")
         assert brack_symbol_pos > 0
         prev_symbol = directive.raw_text[brack_symbol_pos - 1]
@@ -202,7 +202,6 @@ class IfAlwaysTrueDiagnostic(BaseDiagnostic):
         # TODO add detection of more trivially true expressions?
         if directive_contains_condition(hashword) and condition == "1":
             return If0DeadCodeDiagnostic(directive)
-
 
 def run_simple_checks(pre_lines):
     all_single_line_diagnostics = (UnknownDirectiveDiagnostic,

@@ -47,7 +47,7 @@ def tokenize(txt):
 
 
 class PreprocessorDirective:
-    "Partially parsed source file line"
+    "Tokenized preprocessor line"
     def __init__(self, txt, lineno):
         self.raw_text = txt
         self.lineno = lineno
