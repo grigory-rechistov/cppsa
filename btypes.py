@@ -60,21 +60,15 @@ class PreprocessorDirective:
             # Merge them
             tokens = [tokens[0] + tokens[1]] + tokens[2:]
 
-        # Unglue terminal hash if needed. TODO remove after tokenize() works
-        final_token = tokens[-1]
-        has_glued_slash = len(final_token) > 1 and final_token[-1] == "\\"
-        if has_glued_slash:
-            final_token_pair = [final_token[:-1], "\\"]
-            tokens = tokens[:-1] + final_token_pair
-
         self.tokens = tokens
         self.hashword = self.tokens[0]
     def __repr__(self):
         return "<PreprocessorDirective at %d %s>" % (self.lineno,
                                                      repr(self.raw_text))
-
     def is_ifndef(self):
-        # Return True on #ifndef and #if !defined(...)
+        # Return True on either of
+        # #ifndef
+        # #if !defined(...)
         if self.hashword == IFNDEF:
             return True
         if self.hashword != IF:
