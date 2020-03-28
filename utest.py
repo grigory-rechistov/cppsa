@@ -324,6 +324,15 @@ class TestMultiLineDirectives(unittest.TestCase):
         res = UnmarkedEndifDiagnostic.apply_to_lines(dirs)
         self.assertTrue(len(res) == 0)
 
+    def test_incorrectly_annotated_remote_endif(self):
+        dirs = (
+            PreprocessorDirective("#ifdef A", 1),
+            PreprocessorDirective("#endif incorrect but accepted", 1000),
+        )
+        res = UnmarkedEndifDiagnostic.apply_to_lines(dirs)
+        self.assertTrue(len(res) == 0)
+
+
 class TestIncludeGuards(unittest.TestCase):
     def test_include_guard_detection_ifndef(self):
         dirs = (
