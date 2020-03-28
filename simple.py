@@ -64,8 +64,7 @@ def count_non_alphanum(txt):
 
 def tokens_without_comment(tokens):
     # Disregard a trailing comment, i.e. anything after // or /*
-    # TODO this function would not be needed if a separate pass handled single-
-    #      and multiline comments in the source in advance.
+    # Certain other diagnostics treat comments as important part of lines
     res = []
     for token in tokens:
         if token in ("//", "/*"):

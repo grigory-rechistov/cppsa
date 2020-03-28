@@ -37,7 +37,9 @@ def read_whitelist(input_file, global_whitelist):
     return res
 
 def extract_preprocessor_lines(input_file):
-    # TODO maybe handle multi-line comments?
+    # TODO Handle multi-line comments? End of line comments are important
+    # to keep as certain diagnostics use them. Code inside multiline comments
+    # is allowed to be incorrect.
     res = list()
     with open(input_file) as f:
         lineno = 1

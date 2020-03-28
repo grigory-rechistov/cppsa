@@ -10,7 +10,7 @@ def is_alnum_underscore(s):
 def match_special(s):
     specials = ("(", ")", ",", "\\", "##",
                 "!",
-                "//", "/*", # TODO parse comments in a separate global pass
+                "//", "/*",
     )
     matched_special = None
     for special in specials:
