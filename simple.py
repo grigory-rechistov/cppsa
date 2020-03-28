@@ -152,7 +152,6 @@ class SuggestInlineDiagnostic(BaseDiagnostic):
         if len(directive.tokens) < 5:
             return
 
-        #first_token = directive.tokens[1]
         opening_bracket_candidate = directive.tokens[2]
         param_candidate = directive.tokens[3]
         if opening_bracket_candidate != "(":
@@ -202,6 +201,29 @@ class IfAlwaysTrueDiagnostic(BaseDiagnostic):
         if directive_contains_condition(hashword) and condition == "1":
             return If0DeadCodeDiagnostic(directive)
 
+class SuggestVoidDiagnostic(BaseDiagnostic):
+    def __init__(self, directive):
+        super().__init__(directive)
+        self.wcode = diag_to_number["suggest_void_function"]
+        self.details = "Suggest defining a void function instead of do {} while"
+
+    @staticmethod
+    def apply(directive):
+        lineno = directive.lineno
+        # A function-like macrodefine with "do", hinting at do {} while
+        # #define WORD ... do ...
+
+        if not directive_is_definition(directive.hashword):
+            return
+        # Is there enough tokens?
+        if len(directive.tokens) < 3:
+            return
+
+        has_do = "do" in directive.tokens[2:]
+        if has_do:
+            return SuggestVoidDiagnostic(directive)
+
+
 def run_simple_checks(pre_lines):
     all_single_line_diagnostics = (UnknownDirectiveDiagnostic,
                           MultiLineDiagnostic,
@@ -211,6 +233,7 @@ def run_simple_checks(pre_lines):
                           SuggestInlineDiagnostic,
                           If0DeadCodeDiagnostic,
                           IfAlwaysTrueDiagnostic,
+                          SuggestVoidDiagnostic,
     )
 
     res = list()

@@ -48,8 +48,6 @@ class TestTokenizer(unittest.TestCase):
         self.assertEqual(tokenize("#define LOST()lost"), ["#define", "LOST", "(", ")", "lost"])
         self.assertEqual(tokenize("#define FOUND( x) not_found"), ["#define", "FOUND", "(", "x", ")", "not_found"])
 
-
-
 class TestInputFiles(unittest.TestCase):
     # Pass '-q' to main to suppress litter in stdout
     def test_main_on_basic(self):
@@ -202,6 +200,30 @@ class TestSimpleDirectives(unittest.TestCase):
         directive = PreprocessorDirective("#if 1", 1)
         res = IfAlwaysTrueDiagnostic.apply(directive)
         self.assertTrue(res)
+
+    def test_suggest_void_function(self):
+        directive = PreprocessorDirective("#define F() do", 1)
+        res = SuggestVoidDiagnostic.apply(directive)
+        self.assertTrue(res)
+        directive = PreprocessorDirective("#define F do", 1)
+        res = SuggestVoidDiagnostic.apply(directive)
+        self.assertTrue(res)
+        directive = PreprocessorDirective("#define F(a,b,c) do", 1)
+        res = SuggestVoidDiagnostic.apply(directive)
+        self.assertTrue(res)
+        directive = PreprocessorDirective("#define F (a, b, c) do", 1)
+        res = SuggestVoidDiagnostic.apply(directive)
+        self.assertTrue(res)
+
+        directive = PreprocessorDirective("#define F() dobado", 1)
+        res = SuggestVoidDiagnostic.apply(directive)
+        self.assertFalse(res)
+        directive = PreprocessorDirective("#define do something", 1)
+        res = SuggestVoidDiagnostic.apply(directive)
+        self.assertFalse(res)
+        directive = PreprocessorDirective("#pragma random do something", 1)
+        res = SuggestVoidDiagnostic.apply(directive)
+        self.assertFalse(res)
 
 class TestMultiLineDirectives(unittest.TestCase):
     def test_shallow_ifdef_nesting(self):
