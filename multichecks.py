@@ -54,8 +54,6 @@ def sense_for_global_cplusplus_guard(pre_lines):
 
 class IfdefNestingDiagnostic(BaseMultilineDiagnostic):
     wcode = diag_to_number["deepnest"]
-    def __init__(self, directive, description):
-        super().__init__(directive, description)
 
     @staticmethod
     def apply_to_lines(pre_lines):
@@ -86,8 +84,6 @@ class IfdefNestingDiagnostic(BaseMultilineDiagnostic):
 
 class UnbalancedEndifDiagnostic(BaseMultilineDiagnostic):
     wcode = diag_to_number["unbalanced_endif"]
-    def __init__(self, directive, description):
-        super().__init__(directive, description)
 
     @staticmethod
     def apply_to_lines(pre_lines):
@@ -108,8 +104,6 @@ class UnbalancedEndifDiagnostic(BaseMultilineDiagnostic):
 
 class UnbalancedIfDiagnostic(BaseMultilineDiagnostic):
     wcode = diag_to_number["unbalanced_if"]
-    def __init__(self, directive, description):
-        super().__init__(directive, description)
 
     @staticmethod
     def apply_to_lines(pre_lines):
@@ -134,8 +128,6 @@ class UnbalancedIfDiagnostic(BaseMultilineDiagnostic):
 
 class UnmarkedEndifDiagnostic(BaseMultilineDiagnostic):
     wcode = diag_to_number["unmarked_endif"]
-    def __init__(self, directive, description):
-        super().__init__(directive, description)
 
     @staticmethod
     def apply_to_lines(pre_lines):
