@@ -58,7 +58,8 @@ def has_comparison_operator(t):
 
 def count_non_alphanum(txt):
     txt = txt.replace(" ", "")
-    ok_symbols = set("_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
+    ok_symbols = frozenset("_ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz0123456789")
     alphanum_count = sum(c in ok_symbols for c in txt)
     return len(txt) - alphanum_count
 

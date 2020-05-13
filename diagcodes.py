@@ -19,7 +19,7 @@ diag_to_number = {
         # TODO mixed_procent_and_sharp_directives: %ifdef #if %endif #endif
     }
 
-all_wcodes = set(diag_to_number.values())
+all_wcodes = frozenset(diag_to_number.values())
 
 assert len(all_wcodes) == len(diag_to_number), "1:1 mapping is maintained"
 
