@@ -76,7 +76,6 @@ class TestInputFiles(unittest.TestCase):
         res = cpssa_main(argv)
         self.assertTrue(res == 1)
 
-
 class TestConstants(unittest.TestCase):
     def test_diag_to_number(self):
         # The mapping must be one-to-one
@@ -425,6 +424,74 @@ class TestDiagSpecParsing(unittest.TestCase):
         (res, err)= parse_diag_spec_line("all", all)
         self.assertEqual(err, None)
         self.assertEqual(res, all)
+
+    def test_default_empty(self):
+        all = set((1, 2, 5, 99))
+        (res, err)= parse_diag_spec_line("", all)
+        self.assertEqual(err, None)
+        self.assertEqual(res, all)
+
+    def test_single_diag(self):
+        all = set((1, 2, 5, 99))
+        (res, err)= parse_diag_spec_line("1", all)
+        self.assertEqual(err, None)
+        self.assertEqual(res, set((1,)))
+
+    def test_comma_numbers(self):
+        all = set((1, 2, 5, 99))
+        (res, err)= parse_diag_spec_line("1,99", all)
+        self.assertEqual(err, None)
+        self.assertEqual(res, set((1, 99)))
+
+    def test_minus_all(self):
+        all = set((1, 2, 5, 99))
+        (res, err)= parse_diag_spec_line("1,2,-all", all)
+        self.assertEqual(err, None)
+        self.assertEqual(res, set())
+
+    def test_all_minus_number(self):
+        all = set((1, 2, 5, 99))
+        (res, err)= parse_diag_spec_line("all,-99", all)
+        self.assertEqual(err, None)
+        self.assertEqual(res, set((1, 2, 5)))
+
+    def test_number_minus_number(self):
+        all = set((1, 2, 5, 99))
+        (res, err)= parse_diag_spec_line("2,5,-2", all)
+        self.assertEqual(err, None)
+        self.assertEqual(res, set((5,)))
+
+    def test_minus_non_specified(self):
+        all = set((1, 2, 5, 99))
+        (res, err)= parse_diag_spec_line("1,2,5,-99", all)
+        self.assertEqual(err, None)
+        self.assertEqual(res, set((1, 2, 5)))
+
+    def test_minus_wrong_number(self):
+        all = set((1, 2, 5, 99))
+        (res, err)= parse_diag_spec_line("all,-100", all)
+        self.assertEqual(err, None)
+        self.assertEqual(res, all)
+
+    def test_zero(self):
+        all = set((1, 2, 5, 99))
+        (res, err)= parse_diag_spec_line("1,0", all)
+        self.assertNotEqual(err, None)
+
+    def test_wrong_number(self):
+        all = set((1, 2, 5, 99))
+        (res, err)= parse_diag_spec_line("100", all)
+        self.assertNotEqual(err, None)
+
+    def test_bad_token(self):
+        all = set((1, 2, 5, 99))
+        (res, err)= parse_diag_spec_line("1,bad_token", all)
+        self.assertNotEqual(err, None)
+
+    def test_multiple_repeats(self):
+        all = set((1, 2, 5, 99))
+        (res, err)= parse_diag_spec_line("1,1,1,1,", all)
+        self.assertNotEqual(err, set((1,)))
 
 if __name__ == '__main__':
     unittest.main()
