@@ -3,6 +3,7 @@
 
 import sys
 import argparse
+import re
 
 from btypes import PreprocessorDirective
 from directives import preprocessor_prefixes
@@ -73,6 +74,10 @@ def parse_args(argv):
                 help="Be extra verbose (cannot be used together with --quiet)")
     parser.add_argument("-W", "--whitelist", type=str, default=None,
                         help="Whitelist of ignored warnings")
+    parser.add_argument("-D", "--diagnostics", type=str, default="",
+                        help='List of diagnostics separated by commas.'
+                            ' Use word "all" to mean all of them, or negative'
+                            ' number to disable a specific diagnostic.')
 
     parser.add_argument('input_file', metavar='input_file', type=str,
                         help='File to be analyzed')
@@ -84,16 +89,52 @@ def parse_args(argv):
         sys.exit(2)
     return opts
 
+def parse_diag_spec_line(spec_string, all_wcodes):
+    if spec_string == '':
+        return (all_wcodes, None)
+    result = set()
+    tokens = spec_string.strip().split(",")
+    for token in tokens:
+        if token == "":
+            continue
+        if token == "all":
+            result.update(all_wcodes)
+        elif token == "-all":
+            result = set()
+        elif re.match(r"-?\d+", token):
+            num = int(token)
+            if num > 0:
+                result.add(num)
+            elif num < 0:
+                try:
+                    result.remove(-num)
+                except KeyError:
+                    pass # it's fine to attempt to remove non-present diag
+            else:
+                return (None, "invalid diagnostics code 0")
+        else:
+            return (None, "unrecognized token '%s'" % token)
+
+    # TODO check that only known numbers are in the set
+    return (result, None)
+
 def main(argv):
     # TODO have a separate whitelist of top level macrodefines: TARGET_HAS_ etc.
 
     opts = parse_args(argv[1:])
-    enabled_wcodes = all_wcodes
 
     input_file = opts.input_file
     verbose = opts.verbose
     quiet = opts.quiet
     whitelist_name = opts.whitelist
+
+    (enabled_wcodes, diag_err) = parse_diag_spec_line(opts.diagnostics,
+                                 all_wcodes)
+    if diag_err is not None:
+        print("Parsing -D failed: %s" % diag_err)
+        return 2
+    if verbose:
+        print("Enabled diagnostics: %s" % sorted(enabled_wcodes))
 
     if verbose:
         print("Processing %s" % input_file)

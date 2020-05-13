@@ -1,6 +1,7 @@
 # These are unit tests
 
 from cppsa import main as cpssa_main
+from cppsa import parse_diag_spec_line
 from btypes import PreprocessorDirective, tokenize
 from directives import is_open_directive, is_close_directive
 
@@ -418,6 +419,12 @@ class TestIncludeGuards(unittest.TestCase):
         )
         self.assertFalse(sense_for_include_guard(dirs))
 
+class TestDiagSpecParsing(unittest.TestCase):
+    def test_keyword_all(self):
+        all = set((1, 2, 5, 99))
+        (res, err)= parse_diag_spec_line("all", all)
+        self.assertEqual(err, None)
+        self.assertEqual(res, all)
 
 if __name__ == '__main__':
     unittest.main()
