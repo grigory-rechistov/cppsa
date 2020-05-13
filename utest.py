@@ -76,6 +76,11 @@ class TestInputFiles(unittest.TestCase):
         res = cpssa_main(argv)
         self.assertTrue(res == 1)
 
+    def test_main_on_empty_diag_list(self):
+        argv = ['cpssa', '-q', '-D-all', 'test/file-with-problems']
+        res = cpssa_main(argv)
+        self.assertTrue(res == 0)
+
 class TestConstants(unittest.TestCase):
     def test_diag_to_number(self):
         # The mapping must be one-to-one
