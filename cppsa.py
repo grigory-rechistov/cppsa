@@ -115,7 +115,10 @@ def parse_diag_spec_line(spec_string, all_wcodes):
         else:
             return (None, "unrecognized token '%s'" % token)
 
-    # TODO check that only known numbers are in the set
+    # Check that only known numbers are in the set
+    extra_numbers = result.difference(all_wcodes)
+    if extra_numbers:
+        return (None, "unknown diagnostics codes %s" % extra_numbers)
     return (result, None)
 
 def main(argv):
