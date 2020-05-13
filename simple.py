@@ -5,20 +5,19 @@ from directives import directive_contains_condition, directive_is_definition
 from diagcodes import diag_to_number
 
 class BaseDiagnostic:
+    wcode = 0
     def __init__(self, directive):
         self.lineno = directive.lineno
         self.text = directive.raw_text
-
-        self.wcode = 0
         self.details = "unknown diagnostic"
     def __repr__(self):
         return "<%s W%d at %d: %s>" % (type(self).__name__,
                                       self.wcode, self.lineno, self.details)
 
 class UnknownDirectiveDiagnostic(BaseDiagnostic):
+    wcode = diag_to_number["unknown"]
     def __init__(self, directive):
         super().__init__(directive)
-        self.wcode = diag_to_number["unknown"]
         self.details = "Unknown directive %s" % directive.hashword
     @staticmethod
     def apply(directive):
@@ -28,9 +27,10 @@ class UnknownDirectiveDiagnostic(BaseDiagnostic):
             return UnknownDirectiveDiagnostic(directive)
 
 class MultiLineDiagnostic(BaseDiagnostic):
+    wcode = diag_to_number["multiline"]
     def __init__(self, directive):
         super().__init__(directive)
-        self.wcode = diag_to_number["multiline"]
+
         self.details = "Multi-line define"
     @staticmethod
     def apply(directive):
@@ -41,9 +41,9 @@ class MultiLineDiagnostic(BaseDiagnostic):
 
 
 class LeadingWhitespaceDiagnostic(BaseDiagnostic):
+    wcode = diag_to_number["whitespace"]
     def __init__(self, directive):
         super().__init__(directive)
-        self.wcode = diag_to_number["whitespace"]
         self.details = "Preprocessor directive starts with whitespace"
     @staticmethod
     def apply(directive):
@@ -87,9 +87,9 @@ def count_noncomment_tokens(directive):
     return len(tokens)
 
 class ComplexIfConditionDiagnostic(BaseDiagnostic):
+    wcode = diag_to_number["complex_if_condition"]
     def __init__(self, directive):
         super().__init__(directive)
-        self.wcode = diag_to_number["complex_if_condition"]
         self.details = "Logical condition looks to be overly complex"
 
     @staticmethod
@@ -120,9 +120,9 @@ class ComplexIfConditionDiagnostic(BaseDiagnostic):
             return ComplexIfConditionDiagnostic(directive)
 
 class SpaceAfterHashDiagnostic(BaseDiagnostic):
+    wcode = diag_to_number["space_after_leading"]
     def __init__(self, directive):
         super().__init__(directive)
-        self.wcode = diag_to_number["space_after_leading"]
         self.details = "Space between leading symbol and keyword"
 
     @staticmethod
@@ -135,9 +135,9 @@ class SpaceAfterHashDiagnostic(BaseDiagnostic):
             return SpaceAfterHashDiagnostic(directive)
 
 class SuggestInlineDiagnostic(BaseDiagnostic):
+    wcode = diag_to_number["suggest_inline_function"]
     def __init__(self, directive):
         super().__init__(directive)
-        self.wcode = diag_to_number["suggest_inline_function"]
         self.details = "Suggest defining a static inline function instead"
 
     @staticmethod
@@ -170,9 +170,9 @@ class SuggestInlineDiagnostic(BaseDiagnostic):
         return SuggestInlineDiagnostic(directive)
 
 class If0DeadCodeDiagnostic(BaseDiagnostic):
+    wcode = diag_to_number["if_0_dead_code"]
     def __init__(self, directive):
         super().__init__(directive)
-        self.wcode = diag_to_number["if_0_dead_code"]
         self.details = "Code block is always discarded. Consider removing it"
     @staticmethod
     def apply(directive):
@@ -185,9 +185,9 @@ class If0DeadCodeDiagnostic(BaseDiagnostic):
             return If0DeadCodeDiagnostic(directive)
 
 class IfAlwaysTrueDiagnostic(BaseDiagnostic):
+    wcode = diag_to_number["if_always_true"]
     def __init__(self, directive):
         super().__init__(directive)
-        self.wcode = diag_to_number["if_always_true"]
         self.details = ("Code block is always included." +
                         " Remove surrounding directives")
     @staticmethod
@@ -202,9 +202,9 @@ class IfAlwaysTrueDiagnostic(BaseDiagnostic):
             return If0DeadCodeDiagnostic(directive)
 
 class SuggestVoidDiagnostic(BaseDiagnostic):
+    wcode = diag_to_number["suggest_void_function"]
     def __init__(self, directive):
         super().__init__(directive)
-        self.wcode = diag_to_number["suggest_void_function"]
         self.details = "Suggest defining a void function instead of do {} while"
 
     @staticmethod
@@ -243,4 +243,3 @@ def run_simple_checks(pre_lines):
             if w is not None:
                 res.append(w)
     return res
-

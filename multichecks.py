@@ -5,13 +5,12 @@ from directives import DEFINE
 from diagcodes import diag_to_number
 
 class BaseMultilineDiagnostic:
+    wcode = 0
     def __init__(self, directive, description):
         assert isinstance(description, str)
         assert isinstance(directive, PreprocessorDirective)
         self.lineno = directive.lineno
         self.text = directive.raw_text
-
-        self.wcode = 0
         self.details = description
     def __repr__(self):
         return "<%s W%d at %d: %s>" % (type(self).__name__,
@@ -54,9 +53,9 @@ def sense_for_global_cplusplus_guard(pre_lines):
     return False
 
 class IfdefNestingDiagnostic(BaseMultilineDiagnostic):
+    wcode = diag_to_number["deepnest"]
     def __init__(self, directive, description):
         super().__init__(directive, description)
-        self.wcode = diag_to_number["deepnest"]
 
     @staticmethod
     def apply_to_lines(pre_lines):
@@ -86,9 +85,9 @@ class IfdefNestingDiagnostic(BaseMultilineDiagnostic):
         return res
 
 class UnbalancedEndifDiagnostic(BaseMultilineDiagnostic):
+    wcode = diag_to_number["unbalanced_endif"]
     def __init__(self, directive, description):
         super().__init__(directive, description)
-        self.wcode = diag_to_number["unbalanced_endif"]
 
     @staticmethod
     def apply_to_lines(pre_lines):
@@ -108,9 +107,9 @@ class UnbalancedEndifDiagnostic(BaseMultilineDiagnostic):
         return res
 
 class UnbalancedIfDiagnostic(BaseMultilineDiagnostic):
+    wcode = diag_to_number["unbalanced_if"]
     def __init__(self, directive, description):
         super().__init__(directive, description)
-        self.wcode = diag_to_number["unbalanced_if"]
 
     @staticmethod
     def apply_to_lines(pre_lines):
@@ -134,9 +133,9 @@ class UnbalancedIfDiagnostic(BaseMultilineDiagnostic):
         return res
 
 class UnmarkedEndifDiagnostic(BaseMultilineDiagnostic):
+    wcode = diag_to_number["unmarked_endif"]
     def __init__(self, directive, description):
         super().__init__(directive, description)
-        self.wcode = diag_to_number["unmarked_endif"]
 
     @staticmethod
     def apply_to_lines(pre_lines):
