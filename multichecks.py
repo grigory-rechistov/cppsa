@@ -2,7 +2,7 @@ from btypes import PreprocessorDirective
 
 from directives import is_open_directive, is_close_directive
 from directives import DEFINE
-from diagcodes import diag_to_number
+from diagcodes import diag_to_number, filter_diagnostics
 
 class BaseMultilineDiagnostic:
     wcode = 0
@@ -168,15 +168,17 @@ class UnmarkedEndifDiagnostic(BaseMultilineDiagnostic):
         return res
 
 
-def run_complex_checks(pre_lines):
-    all_multi_line_diagnostics = (
+def run_complex_checks(pre_lines, enabled_wcodes):
+    all_diagnostics = (
                         IfdefNestingDiagnostic,
                         UnbalancedEndifDiagnostic,
                         UnbalancedIfDiagnostic,
                         UnmarkedEndifDiagnostic,
     )
 
+    enabled_diagnostics = filter_diagnostics(all_diagnostics, enabled_wcodes)
+
     res = list()
-    for dia_class in all_multi_line_diagnostics:
+    for dia_class in enabled_diagnostics:
         res += dia_class.apply_to_lines(pre_lines)
     return res

@@ -2,7 +2,7 @@
 
 from directives import all_directives, preprocessor_prefixes
 from directives import directive_contains_condition, directive_is_definition
-from diagcodes import diag_to_number
+from diagcodes import diag_to_number, filter_diagnostics
 
 class BaseDiagnostic:
     wcode = 0
@@ -224,8 +224,8 @@ class SuggestVoidDiagnostic(BaseDiagnostic):
             return SuggestVoidDiagnostic(directive)
 
 
-def run_simple_checks(pre_lines):
-    all_single_line_diagnostics = (UnknownDirectiveDiagnostic,
+def run_simple_checks(pre_lines, enabled_wcodes):
+    all_diagnostics    = (UnknownDirectiveDiagnostic,
                           MultiLineDiagnostic,
                           LeadingWhitespaceDiagnostic,
                           ComplexIfConditionDiagnostic,
@@ -236,9 +236,10 @@ def run_simple_checks(pre_lines):
                           SuggestVoidDiagnostic,
     )
 
+    enabled_diagnostics = filter_diagnostics(all_diagnostics, enabled_wcodes)
     res = list()
     for pre_line in pre_lines:
-        for dia_class in all_single_line_diagnostics:
+        for dia_class in enabled_diagnostics:
             w = dia_class.apply(pre_line)
             if w is not None:
                 res.append(w)

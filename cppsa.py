@@ -9,7 +9,7 @@ from directives import preprocessor_prefixes
 
 from directives import is_open_directive, is_close_directive
 from directives import line_is_preprocessor_directive
-from diagcodes import diag_to_number
+from diagcodes import all_wcodes
 
 from simple import run_simple_checks
 from multichecks import run_complex_checks
@@ -74,7 +74,6 @@ def parse_args(argv):
     parser.add_argument("-W", "--whitelist", type=str, default=None,
                         help="Whitelist of ignored warnings")
 
-
     parser.add_argument('input_file', metavar='input_file', type=str,
                         help='File to be analyzed')
 
@@ -89,6 +88,7 @@ def main(argv):
     # TODO have a separate whitelist of top level macrodefines: TARGET_HAS_ etc.
 
     opts = parse_args(argv[1:])
+    enabled_wcodes = all_wcodes
 
     input_file = opts.input_file
     verbose = opts.verbose
@@ -105,8 +105,8 @@ def main(argv):
     pre_lines = extract_preprocessor_lines(input_file)
 
     diagnostics = list()
-    diagnostics += run_simple_checks(pre_lines)
-    diagnostics += run_complex_checks(pre_lines)
+    diagnostics += run_simple_checks(pre_lines, enabled_wcodes)
+    diagnostics += run_complex_checks(pre_lines, enabled_wcodes)
 
     # Filter collected diagnostics against the whitelist
     displayed_diagnostics = filter_diagnostics(diagnostics, whitelist)
