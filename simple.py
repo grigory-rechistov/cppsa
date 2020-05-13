@@ -200,7 +200,7 @@ class IfAlwaysTrueDiagnostic(BaseDiagnostic):
 
         # TODO add detection of more trivially true expressions?
         if directive_contains_condition(hashword) and condition == "1":
-            return If0DeadCodeDiagnostic(directive)
+            return IfAlwaysTrueDiagnostic(directive)
 
 class SuggestVoidDiagnostic(BaseDiagnostic):
     wcode = diag_to_number["suggest_void_function"]
