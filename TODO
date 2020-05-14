@@ -1,0 +1,8 @@
+==Things to work on==
+
+- add typed variable whitelist diagnostic
+- add __cplusplus sensing
+- handle comments properly
+- handle multi-line macros
+- sense usage of "##", "#" inside the macrodefinitions and allow them: no static inline suggestions
+- report #define X <[0x]number> as "suggest using const or enum"
