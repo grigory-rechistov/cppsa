@@ -1,4 +1,4 @@
-from btypes import PreprocessorDirective
+from tokenizer import PreprocessorDirective
 
 from directives import is_open_directive, is_close_directive
 from directives import DEFINE

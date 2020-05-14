@@ -2,7 +2,7 @@
 
 from cppsa import main as cpssa_main
 from cppsa import parse_diag_spec_line
-from btypes import PreprocessorDirective, tokenize
+from tokenizer import PreprocessorDirective, tokenize
 from directives import is_open_directive, is_close_directive
 
 from simple import *

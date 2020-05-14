@@ -5,7 +5,7 @@ import sys
 import argparse
 import re
 
-from btypes import PreprocessorDirective
+from tokenizer import PreprocessorDirective
 from directives import preprocessor_prefixes
 
 from directives import is_open_directive, is_close_directive

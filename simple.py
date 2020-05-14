@@ -198,7 +198,6 @@ class IfAlwaysTrueDiagnostic(BaseDiagnostic):
         hashword = directive.hashword
         condition = directive.tokens[1]
 
-        # TODO add detection of more trivially true expressions?
         if directive_contains_condition(hashword) and condition == "1":
             return IfAlwaysTrueDiagnostic(directive)
 

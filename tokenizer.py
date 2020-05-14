@@ -1,5 +1,4 @@
-# Tokenizing directives
-# TODO rename the file to something sensible
+# Tokenizing directives and routines
 
 import re
 from directives import IFNDEF, IF
@@ -54,7 +53,6 @@ class PreprocessorDirective:
         stripped_txt = txt.strip()
         assert len(stripped_txt) > 0, "Line must have at least one symbol (# or similar)"
 
-        #tokens = list(token.strip() for token in stripped_txt.split())
         tokens = tokenize(stripped_txt)
         if len(tokens[0]) == 1: # space between leading symbol and keyword
             # Merge them
