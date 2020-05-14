@@ -1,7 +1,7 @@
 # Tokenizing directives and routines
 
 import re
-from directives import IFNDEF, IF
+from directives import IFNDEF, IF, IFDEF
 
 def is_alnum_underscore(s):
     return re.match(r'^[A-Za-z0-9_]+$', s) is not None
@@ -77,6 +77,20 @@ class PreprocessorDirective:
         if self.tokens[1] != "!":
             return False
         if self.tokens[2] != "defined":
+            return False
+        return True
+
+    def is_ifdef(self):
+        # Return True on either of
+        # #ifdef
+        # #if defined(...)
+        if self.hashword == IFDEF:
+            return True
+        if self.hashword != IF:
+            return False
+        if len(self.tokens) < 2: # look for #if defined
+            return False
+        if self.tokens[1] != "defined":
             return False
         return True
 

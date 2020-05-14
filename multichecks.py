@@ -49,8 +49,20 @@ def sense_for_include_guard(pre_lines):
     return True
 
 def sense_for_global_cplusplus_guard(pre_lines):
-    # TODO write me
-    return False
+    # Look for exactly two occasions of the following pairs of directives
+    # #ifdef __cplusplus
+    # ... no directives ...
+    # #endif
+    ifdef_cplusplus_endif_pairs = 0
+    expect_immediate_endif = False
+    for line in pre_lines:
+        if line.is_ifdef() and (line.first_symbol() == "__cplusplus"):
+            expect_immediate_endif = True
+            continue # Try the next line to be #define
+        if is_close_directive(line.hashword) and expect_immediate_endif:
+            ifdef_cplusplus_endif_pairs += 1
+        expect_immediate_endif = False
+    return ifdef_cplusplus_endif_pairs == 2
 
 class IfdefNestingDiagnostic(BaseMultilineDiagnostic):
     wcode = diag_to_number["deepnest"]
