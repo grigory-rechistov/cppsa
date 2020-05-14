@@ -277,6 +277,35 @@ class TestMultiLineDirectives(unittest.TestCase):
         res = IfdefNestingDiagnostic.apply_to_lines(dirs)
         self.assertTrue(len(res) == 0)
 
+    def test_ifdef_nesting_with_single_global_cplusplus(self):
+        dirs = (
+            PreprocessorDirective("#ifdef __cplusplus", 1),
+            PreprocessorDirective("#if C == B", 3),
+            PreprocessorDirective("#ifdef D", 4),
+
+            PreprocessorDirective("#endif // D", 11),
+            PreprocessorDirective("#endif // C == B", 12),
+            PreprocessorDirective("#endif // __cplusplus", 13),
+        )
+        res = IfdefNestingDiagnostic.apply_to_lines(dirs)
+        self.assertTrue(len(res) == 0)
+
+    def test_ifdef_nesting_with_several_cplusplus(self):
+        dirs = (
+            PreprocessorDirective("#ifdef __cplusplus", 1),
+            PreprocessorDirective("#if C == B", 3),
+            PreprocessorDirective("#ifdef D", 4),
+
+            PreprocessorDirective("#endif // D", 11),
+            PreprocessorDirective("#endif // C == B", 12),
+            PreprocessorDirective("#endif // __cplusplus", 13),
+
+            PreprocessorDirective("#ifdef __cplusplus", 20),
+            PreprocessorDirective("#endif // second __cplusplus", 24),
+        )
+        res = IfdefNestingDiagnostic.apply_to_lines(dirs)
+        self.assertTrue(len(res) == 1)
+
     def test_unbalanced_ifdef_nesting(self):
         dirs = (
             PreprocessorDirective("#ifdef A", 1),
