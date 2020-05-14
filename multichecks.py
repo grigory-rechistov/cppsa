@@ -158,7 +158,7 @@ class UnmarkedEndifDiagnostic(BaseMultilineDiagnostic):
                 # matched the #if condition, but given it is a freeform text,
                 # it can not be reliably done for complex cases.
                 # Instead, require that some comment is present
-                # TODO at least the fisrt alphanumeric token should match, and
+                # TODO at least the first alphanumeric token should match, and
                 #      it can be easily checked
                 if len(endif_tokens) < 2: # #endif plus at least something
                     description = ("No trailing comment to match opening" +
