@@ -206,7 +206,7 @@ class TestSimpleDirectives(unittest.TestCase):
         res = IfAlwaysTrueDiagnostic.apply(directive)
         self.assertTrue(res)
 
-    def test_suggest_void_function(self):
+    def test_suggest_void_function_accept(self):
         directive = PreprocessorDirective("#define F() do", 1)
         res = SuggestVoidDiagnostic.apply(directive)
         self.assertTrue(res)
@@ -220,6 +220,7 @@ class TestSimpleDirectives(unittest.TestCase):
         res = SuggestVoidDiagnostic.apply(directive)
         self.assertTrue(res)
 
+    def test_suggest_void_function_reject(self):
         directive = PreprocessorDirective("#define F() dobado", 1)
         res = SuggestVoidDiagnostic.apply(directive)
         self.assertFalse(res)
@@ -229,6 +230,98 @@ class TestSimpleDirectives(unittest.TestCase):
         directive = PreprocessorDirective("#pragma random do something", 1)
         res = SuggestVoidDiagnostic.apply(directive)
         self.assertFalse(res)
+
+    def test_suggest_better_constant_accept(self):
+        directive = PreprocessorDirective("#define A 1", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertIsInstance(res, SuggestConstantDiagnostic)
+
+        directive = PreprocessorDirective("#define B 0xabcd", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertIsInstance(res, SuggestConstantDiagnostic)
+
+        directive = PreprocessorDirective('#define C "string"', 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertIsInstance(res, SuggestConstantDiagnostic)
+
+        directive = PreprocessorDirective('#define D -5', 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertIsInstance(res, SuggestConstantDiagnostic)
+
+    def test_suggest_better_constant_accept_special(self):
+        directive = PreprocessorDirective("#define A UINT64_C(1)", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertIsInstance(res, SuggestConstantDiagnostic)
+
+        directive = PreprocessorDirective("#define B BIT(999)", 2)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertIsInstance(res, SuggestConstantDiagnostic)
+
+        directive = PreprocessorDirective("#define C UINT32_C(~0x1ff)", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertIsInstance(res, SuggestConstantDiagnostic)
+
+    def test_suggest_better_constant_reject(self):
+        directive = PreprocessorDirective("#define A", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertFalse(res)
+
+        directive = PreprocessorDirective("#define B() 1", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertFalse(res)
+
+        directive = PreprocessorDirective("#define C(x) 1", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertFalse(res)
+
+        directive = PreprocessorDirective("#ifdef D", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertFalse(res)
+
+        directive = PreprocessorDirective("#define E 1 + f(x)", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertFalse(res)
+
+        directive = PreprocessorDirective('#define F 2 - 3', 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertFalse(res)
+
+        directive = PreprocessorDirective('#define G //comment', 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertFalse(res)
+
+        directive = PreprocessorDirective('#define H \\', 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertFalse(res)
+
+    def test_suggest_better_constant_reject_too_complex(self):
+        # Too complex to figure out the constant means the diagnostic will not
+        # be reported for the following cases. Ideally, these cases should be
+        # to start being recognized
+
+        directive = PreprocessorDirective("#define A (400)", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertFalse(res)
+
+        directive = PreprocessorDirective("#define B (uint64_t)400", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertFalse(res)
+
+        directive = PreprocessorDirective("#define C (1 << 30)", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertFalse(res)
+
+        directive = PreprocessorDirective("#define D ~UINT32_C(0x1ff)", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertFalse(res)
+
+    def test_suggest_better_constant_symbol_is_mentioned_in_details(self):
+        directive = PreprocessorDirective("#define THIS_IS_SYMBOL 0", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertTrue(res)
+        found_symbol = res.details.find("THIS_IS_SYMBOL") != -1
+        self.assertTrue(found_symbol)
+
 
 class TestMultiLineDirectives(unittest.TestCase):
     def test_shallow_ifdef_nesting(self):

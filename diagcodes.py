@@ -13,10 +13,10 @@ diag_to_number = {
         "if_0_dead_code": 11,
         "if_always_true": 12,
         "suggest_void_function": 13,
+        "suggest_const": 14,
         # TODO using_numerical_as_def_undef # e.g #define A 1, #ifdef A
-        # TODO suggest_enum_or_const
         # TODO "undef_is_bad for external symbols "
-        # TODO mixed_procent_and_sharp_directives: %ifdef #if %endif #endif
+        # TODO mixed_percent_and_sharp_directives: %ifdef #if %endif #endif
     }
 
 all_wcodes = frozenset(diag_to_number.values())

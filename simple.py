@@ -21,7 +21,6 @@ class UnknownDirectiveDiagnostic(BaseDiagnostic):
         self.details = "Unknown directive %s" % directive.hashword
     @staticmethod
     def apply(directive):
-        lineno = directive.lineno
         hashword = directive.hashword
         if not hashword in all_directives:
             return UnknownDirectiveDiagnostic(directive)
@@ -33,7 +32,6 @@ class MultiLineDiagnostic(BaseDiagnostic):
         self.details = "Multi-line preprocessor directive"
     @staticmethod
     def apply(directive):
-        lineno = directive.lineno
         last_token = directive.tokens[-1]
         if last_token == "\\":
             return MultiLineDiagnostic(directive)
@@ -46,7 +44,6 @@ class LeadingWhitespaceDiagnostic(BaseDiagnostic):
         self.details = "Preprocessor directive starts with whitespace"
     @staticmethod
     def apply(directive):
-        lineno = directive.lineno
         if not (directive.raw_text[0] in preprocessor_prefixes):
             return LeadingWhitespaceDiagnostic(directive)
 
@@ -94,7 +91,6 @@ class ComplexIfConditionDiagnostic(BaseDiagnostic):
 
     @staticmethod
     def apply(directive):
-        lineno = directive.lineno
         if not directive_contains_condition(directive.hashword):
             return
         # We want to allow only expressions using a single variable, e.g.
@@ -127,7 +123,6 @@ class SpaceAfterHashDiagnostic(BaseDiagnostic):
 
     @staticmethod
     def apply(directive):
-        lineno = directive.lineno
         txt = directive.raw_text.strip()
         if len(txt) < 2:
             return
@@ -142,7 +137,6 @@ class SuggestInlineDiagnostic(BaseDiagnostic):
 
     @staticmethod
     def apply(directive):
-        lineno = directive.lineno
         # A macrodefine with non-empty parameter list
         # #define WORD ( something_not_bracket )
 
@@ -208,7 +202,6 @@ class SuggestVoidDiagnostic(BaseDiagnostic):
 
     @staticmethod
     def apply(directive):
-        lineno = directive.lineno
         # A function-like macrodefine with "do", hinting at do {} while
         # #define WORD ... do ...
 
@@ -222,6 +215,49 @@ class SuggestVoidDiagnostic(BaseDiagnostic):
         if has_do:
             return SuggestVoidDiagnostic(directive)
 
+class SuggestConstantDiagnostic(BaseDiagnostic):
+    # standard function-like macros that return compile-time constants
+    # and a few commonly used function-like macros
+    recognized_keywords = frozenset(("UINT64_C", "UINT32_C", "UINT16_C",
+        "UINTMAX_C", "INTMAX_C", "INT64_C", "INT32_C", "INT16_C",
+        "BIT",
+    ))
+
+    wcode = diag_to_number["suggest_const"]
+    def __init__(self, directive, symbol):
+        super().__init__(directive)
+        self.details = ("Suggest using a typed (static) const"
+                        " variable or enum for %s" % symbol)
+
+    @staticmethod
+    def apply(directive):
+        # symbol is defined as a literal constant:
+        # #define SYMBOL 1234
+        # #define SYMBOL 0xabcd
+        # #define SYMBOL "string here"
+
+        if not directive_is_definition(directive.hashword):
+            return
+        # Is there enough tokens?
+        if len(directive.tokens) < 3:
+            return
+
+        symbol = directive.tokens[1]
+        diag = SuggestConstantDiagnostic(directive, symbol)
+
+        literal_candidate = directive.tokens[2]
+        if literal_candidate == "(": # It is a function-like define
+            return
+
+        if literal_candidate == "\\": # No idea what follows at the next line
+            return
+
+        if literal_candidate in SuggestConstantDiagnostic.recognized_keywords:
+            return diag
+
+        if len(directive.tokens) == 3:
+            # Not much deviation from #define SYMBOL LITERAL
+            return diag
 
 def run_simple_checks(pre_lines, enabled_wcodes):
     all_diagnostics    = (UnknownDirectiveDiagnostic,
@@ -233,6 +269,7 @@ def run_simple_checks(pre_lines, enabled_wcodes):
                           If0DeadCodeDiagnostic,
                           IfAlwaysTrueDiagnostic,
                           SuggestVoidDiagnostic,
+                          SuggestConstantDiagnostic,
     )
 
     enabled_diagnostics = filter_diagnostics(all_diagnostics, enabled_wcodes)
