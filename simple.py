@@ -30,8 +30,7 @@ class MultiLineDiagnostic(BaseDiagnostic):
     wcode = diag_to_number["multiline"]
     def __init__(self, directive):
         super().__init__(directive)
-
-        self.details = "Multi-line define"
+        self.details = "Multi-line preprocessor directive"
     @staticmethod
     def apply(directive):
         lineno = directive.lineno
