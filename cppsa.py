@@ -50,7 +50,6 @@ def extract_multiline_sequence(lines, start_lineno):
         if not line_ends_with_continuation(this_line):
             break
         lineno += 1
-
     return res
 
 def extract_preprocessor_lines(input_file):

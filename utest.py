@@ -2,8 +2,8 @@
 
 from cppsa import main as cpssa_main
 from cppsa import parse_diag_spec_line
-from cppsa import line_is_preprocessor_directive, line_ends_with_continuation
-from cppsa import extract_multiline_sequence
+from cppsa import line_is_preprocessor_directive
+from tokenizer import extract_multiline_sequence, line_ends_with_continuation
 from tokenizer import PreprocessorDirective, tokenize
 from directives import is_open_directive, is_close_directive
 
@@ -148,6 +148,27 @@ class TestDirectiveTokens(unittest.TestCase):
         self.assertFalse(is_close_directive("#if"))
         self.assertFalse(is_close_directive("#else"))
 
+class TestContinuedMultilineDirective(unittest.TestCase):
+    def test_full_text_combining(self):
+        directive = PreprocessorDirective(["aa\\", "bb"], 1)
+        ft = directive.full_text
+        self.assertEqual(ft, "aa bb")
+
+        directive = PreprocessorDirective(["cc\\"], 2)
+        ft = directive.full_text
+        self.assertEqual(ft, "cc")
+
+        directive = PreprocessorDirective(["dd\\\n", "ee"], 3)
+        ft = directive.full_text
+        self.assertEqual(ft, "dd ee")
+
+        directive = PreprocessorDirective(["ff\t\\", "gg"], 4)
+        ft = directive.full_text
+        self.assertEqual(ft, "ff\tgg")
+
+        directive = PreprocessorDirective(["hh", "jj"], 5)
+        ft = directive.full_text
+        self.assertEqual(ft, "hh jj")
 
 class TestSimpleDirectives(unittest.TestCase):
 
@@ -366,7 +387,7 @@ class TestSimpleDirectives(unittest.TestCase):
         self.assertTrue(found_symbol)
 
 
-class TestMultiLineDirectives(unittest.TestCase):
+class TestScopeDirectives(unittest.TestCase):
     def test_shallow_ifdef_nesting(self):
         dirs = (
             PreprocessorDirective("#ifdef A", 1),

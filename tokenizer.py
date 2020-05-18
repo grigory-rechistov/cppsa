@@ -45,29 +45,60 @@ def tokenize(txt):
     return res
 
 
+def line_ends_with_continuation(txt):
+    txt = txt.strip()
+    # BUG: does not handle the case when the final backslash is escaped by
+    #      itself by a preceding backslash
+    return len(txt) > 0 and txt[-1] == "\\"
+
+def extract_multiline_sequence(lines, start_lineno):
+    lineno = start_lineno
+    res = []
+    while lineno < len(lines):
+        this_line = lines[lineno]
+        res.append(this_line)
+        if not line_ends_with_continuation(this_line):
+            break
+        lineno += 1
+    return res
+
+
 class PreprocessorDirective:
-    "Tokenized preprocessor line"
+    "Tokenized preprocessor line(s)"
     def __init__(self, line_or_lines, lineno):
         assert line_or_lines
         if isinstance(line_or_lines, str):
-            txt = line_or_lines
+            first_line = line_or_lines
             self.multi_lines = [line_or_lines]
         else:
-            txt = line_or_lines[0]
+            first_line = line_or_lines[0]
             self.multi_lines = line_or_lines
 
-        self.raw_text = txt
+        self.raw_text = first_line
+        self.full_text = self.combine_all_lines()
         self.lineno = lineno
-        stripped_txt = txt.strip()
+        stripped_txt = first_line.strip()
         assert len(stripped_txt) > 0, "Line must have at least one symbol (# or similar)"
 
-        tokens = tokenize(stripped_txt)
-        if len(tokens[0]) == 1: # space between leading symbol and keyword
+        tokens = tokenize(stripped_txt) # TODO tokenize full_text instead?
+        if len(tokens[0]) == 1: # space between leading hash symbol and keyword
             # Merge them
             tokens = [tokens[0] + tokens[1]] + tokens[2:]
 
         self.tokens = tokens
         self.hashword = self.tokens[0]
+
+    def combine_all_lines(self):
+        res = ''
+        for line in self.multi_lines:
+            line = line.strip()
+            if line_ends_with_continuation(line):
+                line = line[:-1]
+            if res and (not res[-1].isspace()):
+                res += " "
+            res += line
+        return res
+
     def __repr__(self):
         if len(self.multi_lines) > 1:
             suffix = ' and %d more line(s)' % (len(self.multi_lines) - 1)
