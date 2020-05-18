@@ -37,17 +37,25 @@ def read_whitelist(input_file, global_whitelist):
             res.append((line, wcode))
     return res
 
+def line_ends_with_continuation(txt):
+    txt = txt.strip()
+    return len(txt) > 0 and txt[-1] == "\\"
+
 def extract_preprocessor_lines(input_file):
     # TODO Handle multi-line comments? End of line comments are important
     # to keep as certain diagnostics use them. Code inside multiline comments
     # is allowed to be incorrect.
     res = list()
     with open(input_file) as f:
-        lineno = 1
-        for line in f:
-            if line_is_preprocessor_directive(line):
-                res.append(PreprocessorDirective(line, lineno))
-            lineno += 1
+        lines = f.readlines()
+    lineno = 1
+    while lineno <= len(lines):
+        line = lines[lineno-1]
+        if line_is_preprocessor_directive(line):
+            if line_ends_with_continuation(line):
+                multi_lines = [];# TODO
+            res.append(PreprocessorDirective(line, lineno))
+        lineno += 1
     return res
 
 

@@ -2,6 +2,7 @@
 
 from cppsa import main as cpssa_main
 from cppsa import parse_diag_spec_line
+from cppsa import line_is_preprocessor_directive, line_ends_with_continuation
 from tokenizer import PreprocessorDirective, tokenize
 from directives import is_open_directive, is_close_directive
 
@@ -48,6 +49,31 @@ class TestTokenizer(unittest.TestCase):
     def test_tokenize_other(self):
         self.assertEqual(tokenize("#define LOST()lost"), ["#define", "LOST", "(", ")", "lost"])
         self.assertEqual(tokenize("#define FOUND( x) not_found"), ["#define", "FOUND", "(", "x", ")", "not_found"])
+
+class TestDirectiveFunctions(unittest.TestCase):
+    def test_line_ends_with_continuation(self):
+        self.assertTrue(line_ends_with_continuation("text text\\"))
+        self.assertTrue(line_ends_with_continuation("text text\\  "))
+        self.assertTrue(line_ends_with_continuation("text text\\\n"))
+        self.assertTrue(line_ends_with_continuation("text text\\\n\r"))
+        self.assertTrue(line_ends_with_continuation("text text\\\t"))
+        self.assertTrue(line_ends_with_continuation("\\"))
+
+        self.assertFalse(line_ends_with_continuation(""))
+        self.assertFalse(line_ends_with_continuation("    \n"))
+        self.assertFalse(line_ends_with_continuation("just a text"))
+        self.assertFalse(line_ends_with_continuation("just a text\n"))
+
+    def test_line_is_preprocessor_directive(self):
+        self.assertTrue(line_is_preprocessor_directive("#directive"))
+        self.assertTrue(line_is_preprocessor_directive("   #directive"))
+        self.assertTrue(line_is_preprocessor_directive("#directive\n"))
+        self.assertTrue(line_is_preprocessor_directive("#directive\n\t"))
+        self.assertTrue(line_is_preprocessor_directive("#"))
+
+        self.assertFalse(line_is_preprocessor_directive(""))
+        self.assertFalse(line_is_preprocessor_directive("  \t\n"))
+        self.assertFalse(line_is_preprocessor_directive("not_directive"))
 
 class TestInputFiles(unittest.TestCase):
     # Pass '-q' to main to suppress litter in stdout
