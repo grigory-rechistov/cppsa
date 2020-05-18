@@ -61,10 +61,8 @@ def extract_preprocessor_lines(input_file):
     while lineno < len(lines):
         if line_is_preprocessor_directive(lines[lineno]):
             multi_lines = extract_multiline_sequence(lines, lineno)
-            first_line = multi_lines[0]
             human_lineno = lineno + 1
-            res.append(PreprocessorDirective(first_line, human_lineno,
-                                             multi_lines))
+            res.append(PreprocessorDirective(multi_lines, human_lineno))
             lineno += len(multi_lines)
         else:
             lineno += 1

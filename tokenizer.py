@@ -47,7 +47,15 @@ def tokenize(txt):
 
 class PreprocessorDirective:
     "Tokenized preprocessor line"
-    def __init__(self, txt, lineno, multi_lines = []):
+    def __init__(self, line_or_lines, lineno):
+        assert line_or_lines
+        if isinstance(line_or_lines, str):
+            txt = line_or_lines
+            self.multi_lines = [line_or_lines]
+        else:
+            txt = line_or_lines[0]
+            self.multi_lines = line_or_lines
+
         self.raw_text = txt
         self.lineno = lineno
         stripped_txt = txt.strip()
@@ -61,8 +69,13 @@ class PreprocessorDirective:
         self.tokens = tokens
         self.hashword = self.tokens[0]
     def __repr__(self):
-        return "<PreprocessorDirective at %d %s>" % (self.lineno,
-                                                     repr(self.raw_text))
+        if len(self.multi_lines) > 1:
+            suffix = ' and %d more line(s)' % (len(self.multi_lines) - 1)
+        else:
+            suffix = ''
+        return "<PreprocessorDirective at %d %s%s>" % (self.lineno,
+                                                       repr(self.raw_text),
+                                                       suffix)
     def is_ifndef(self):
         # Return True on either of
         # #ifndef
