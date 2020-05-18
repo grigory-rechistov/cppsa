@@ -1,6 +1,9 @@
 ==Things to work on==
 
 - add typed variable whitelist diagnostic
-- handle comments properly
+- handle (multi-line) comments properly
 - handle multi-line macros
+    - add diagnostic for too long multiline continued macros
+    - change existing diagnostics to look into the concatenated full_text
 - sense usage of "##", "#" inside the macrodefinitions and allow them: no static inline suggestions
+- Add diagnostic to tell strange multiline macros: #include
