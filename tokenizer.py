@@ -47,7 +47,7 @@ def tokenize(txt):
 
 class PreprocessorDirective:
     "Tokenized preprocessor line"
-    def __init__(self, txt, lineno):
+    def __init__(self, txt, lineno, multi_lines = []):
         self.raw_text = txt
         self.lineno = lineno
         stripped_txt = txt.strip()

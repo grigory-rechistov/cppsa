@@ -41,23 +41,34 @@ def line_ends_with_continuation(txt):
     txt = txt.strip()
     return len(txt) > 0 and txt[-1] == "\\"
 
+def extract_multiline_sequence(lines, start_lineno):
+    lineno = start_lineno
+    res = []
+    while lineno < len(lines):
+        this_line = lines[lineno]
+        res.append(this_line)
+        if not line_ends_with_continuation(this_line):
+            break
+        lineno += 1
+
+    return res
+
 def extract_preprocessor_lines(input_file):
-    # TODO Handle multi-line comments? End of line comments are important
-    # to keep as certain diagnostics use them. Code inside multiline comments
-    # is allowed to be incorrect.
     res = list()
     with open(input_file) as f:
         lines = f.readlines()
-    lineno = 1
-    while lineno <= len(lines):
-        line = lines[lineno-1]
-        if line_is_preprocessor_directive(line):
-            if line_ends_with_continuation(line):
-                multi_lines = [];# TODO
-            res.append(PreprocessorDirective(line, lineno))
-        lineno += 1
+    lineno = 0
+    while lineno < len(lines):
+        if line_is_preprocessor_directive(lines[lineno]):
+            multi_lines = extract_multiline_sequence(lines, lineno)
+            first_line = multi_lines[0]
+            human_lineno = lineno + 1
+            res.append(PreprocessorDirective(first_line, human_lineno,
+                                             multi_lines))
+            lineno += len(multi_lines)
+        else:
+            lineno += 1
     return res
-
 
 def filter_diagnostics(diagnostics, whitelist):
     res = list()

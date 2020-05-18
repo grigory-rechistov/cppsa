@@ -3,6 +3,7 @@
 from cppsa import main as cpssa_main
 from cppsa import parse_diag_spec_line
 from cppsa import line_is_preprocessor_directive, line_ends_with_continuation
+from cppsa import extract_multiline_sequence
 from tokenizer import PreprocessorDirective, tokenize
 from directives import is_open_directive, is_close_directive
 
@@ -74,6 +75,22 @@ class TestDirectiveFunctions(unittest.TestCase):
         self.assertFalse(line_is_preprocessor_directive(""))
         self.assertFalse(line_is_preprocessor_directive("  \t\n"))
         self.assertFalse(line_is_preprocessor_directive("not_directive"))
+
+    def test_extract_multiline_sequence(self):
+        lines = ["line 1\\", "line2\\", "line3"]
+        self.assertEqual(len(extract_multiline_sequence(lines, 0)), 3)
+
+        lines = ["line 1\\", "line2\\", "line3\\"]
+        self.assertEqual(len(extract_multiline_sequence(lines, 0)), 3)
+
+        lines = ["line 1\n", "line2\\", "line3"]
+        self.assertEqual(len(extract_multiline_sequence(lines, 0)), 1)
+
+        lines = ["line 1\\"]
+        self.assertEqual(len(extract_multiline_sequence(lines, 0)), 1)
+
+        lines = ["line 1\\\n", "line2", "line3\\"]
+        self.assertEqual(len(extract_multiline_sequence(lines, 0)), 2)
 
 class TestInputFiles(unittest.TestCase):
     # Pass '-q' to main to suppress litter in stdout
