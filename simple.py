@@ -32,7 +32,8 @@ class MultiLineDiagnostic(BaseDiagnostic):
         self.details = "Multi-line preprocessor directive"
     @staticmethod
     def apply(directive):
-        last_token = directive.tokens[-1]
+        first_line = directive.first_line.strip()
+        last_token = first_line[-1]
         if last_token == "\\":
             return MultiLineDiagnostic(directive)
 

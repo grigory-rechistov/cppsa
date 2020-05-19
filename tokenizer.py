@@ -77,10 +77,9 @@ class PreprocessorDirective:
         self.first_line = first_line
         self.full_text = self.combine_all_lines()
         self.lineno = lineno
-        stripped_txt = first_line.strip()
-        assert len(stripped_txt) > 0, "Line must have at least one symbol (# or similar)"
-
-        tokens = tokenize(stripped_txt) # TODO tokenize full_text instead?
+        stripped_txt = self.full_text.strip()
+        assert stripped_txt, "Line must have at least one symbol (# or similar)"
+        tokens = tokenize(stripped_txt)
         if len(tokens[0]) == 1: # space between leading hash symbol and keyword
             # Merge them
             tokens = [tokens[0] + tokens[1]] + tokens[2:]
