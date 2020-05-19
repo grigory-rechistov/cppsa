@@ -7,9 +7,6 @@ import re
 
 from tokenizer import PreprocessorDirective
 from tokenizer import extract_multiline_sequence
-from directives import preprocessor_prefixes
-
-from directives import is_open_directive, is_close_directive
 from directives import line_is_preprocessor_directive
 from diagcodes import all_wcodes
 
