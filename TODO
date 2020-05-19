@@ -3,7 +3,4 @@
 - add typed variable whitelist diagnostic
 - handle (multi-line) comments properly
 - handle quoted string context
-- handle multi-line macros
-    - change existing diagnostics to look into the concatenated full_text
-- Add diagnostic to tell strange multiline macros: #include
-- Exlude W2 from the default list of enabled diagnostics
+- Exclude W2 from the default list of enabled diagnostics
