@@ -250,6 +250,17 @@ class TestSimpleDirectives(unittest.TestCase):
         res = ComplexIfConditionDiagnostic.apply(directive)
         self.assertTrue(res)
 
+    def test_complex_if_condition_for_multiline(self):
+        directive = PreprocessorDirective(["#if LINUX ||\\\n", "WINDOWS"], 1)
+        res = ComplexIfConditionDiagnostic.apply(directive)
+        self.assertIsInstance(res, ComplexIfConditionDiagnostic)
+
+        directive = PreprocessorDirective(
+            ["#if LINUX_IS_SO_COOL_IT_NEEDS_A_LONG_DEFINE \\\n",
+             "/* This is harmless comment*/"], 1)
+        res = ComplexIfConditionDiagnostic.apply(directive)
+        self.assertFalse(res)
+
     def test_complex_if_condition_for_many_tokens(self):
         # Keep spaces between words, they are important for the test
         directive = PreprocessorDirective("#if ( ! ROUNDING_CONTROL ( DEFAULT ) == 4 )", 1)
