@@ -141,13 +141,6 @@ class TestCommandLineOptions(unittest.TestCase):
         res = cppsa_main(argv)
         self.assertTrue(res == 1)
 
-class TestConstants(unittest.TestCase):
-    def test_diag_to_number(self):
-        # The mapping must be one-to-one
-        keys = set(diag_to_number.keys())
-        values = set(diag_to_number.values())
-        self.assertEqual(len(keys), len(values))
-
 class TestDirectiveTokens(unittest.TestCase):
     def test_space_between_hash_and_keyword(self):
         directive = PreprocessorDirective("# define A",1 )

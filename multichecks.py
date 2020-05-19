@@ -2,7 +2,7 @@ from tokenizer import PreprocessorDirective
 
 from directives import is_open_directive, is_close_directive
 from directives import DEFINE, CPLUSPLUS
-from diagcodes import diag_to_number, filter_diagnostics
+from diagcodes import DiagCodes, filter_diagnostics
 
 class BaseMultilineDiagnostic:
     wcode = 0
@@ -60,7 +60,7 @@ def sense_for_global_cplusplus_guard(pre_lines):
     return ifdef_cplusplus_found == 1
 
 class IfdefNestingDiagnostic(BaseMultilineDiagnostic):
-    wcode = diag_to_number["deepnest"]
+    wcode = DiagCodes.deepnest
 
     @staticmethod
     def apply_to_lines(pre_lines):
@@ -90,7 +90,7 @@ class IfdefNestingDiagnostic(BaseMultilineDiagnostic):
         return res
 
 class UnbalancedEndifDiagnostic(BaseMultilineDiagnostic):
-    wcode = diag_to_number["unbalanced_endif"]
+    wcode = DiagCodes.unbalanced_endif
 
     @staticmethod
     def apply_to_lines(pre_lines):
@@ -110,7 +110,7 @@ class UnbalancedEndifDiagnostic(BaseMultilineDiagnostic):
         return res
 
 class UnbalancedIfDiagnostic(BaseMultilineDiagnostic):
-    wcode = diag_to_number["unbalanced_if"]
+    wcode = DiagCodes.unbalanced_if
 
     @staticmethod
     def apply_to_lines(pre_lines):
@@ -134,7 +134,7 @@ class UnbalancedIfDiagnostic(BaseMultilineDiagnostic):
         return res
 
 class UnmarkedEndifDiagnostic(BaseMultilineDiagnostic):
-    wcode = diag_to_number["unmarked_endif"]
+    wcode = DiagCodes.unmarked_endif
 
     @staticmethod
     def apply_to_lines(pre_lines):

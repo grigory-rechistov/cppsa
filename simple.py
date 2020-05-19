@@ -2,7 +2,7 @@
 
 from directives import all_directives, preprocessor_prefixes
 from directives import directive_contains_condition, directive_is_definition
-from diagcodes import diag_to_number, filter_diagnostics
+from diagcodes import DiagCodes, filter_diagnostics
 
 class BaseDiagnostic:
     wcode = 0
@@ -15,7 +15,7 @@ class BaseDiagnostic:
                                       self.wcode, self.lineno, self.details)
 
 class UnknownDirectiveDiagnostic(BaseDiagnostic):
-    wcode = diag_to_number["unknown"]
+    wcode = DiagCodes.unknown
     def __init__(self, directive):
         super().__init__(directive)
         self.details = "Unknown directive %s" % directive.hashword
@@ -26,7 +26,7 @@ class UnknownDirectiveDiagnostic(BaseDiagnostic):
             return UnknownDirectiveDiagnostic(directive)
 
 class MultiLineDiagnostic(BaseDiagnostic):
-    wcode = diag_to_number["multiline"]
+    wcode = DiagCodes.multiline
     def __init__(self, directive):
         super().__init__(directive)
         self.details = "Multi-line preprocessor directive"
@@ -37,7 +37,7 @@ class MultiLineDiagnostic(BaseDiagnostic):
             return MultiLineDiagnostic(directive)
 
 class LeadingWhitespaceDiagnostic(BaseDiagnostic):
-    wcode = diag_to_number["whitespace"]
+    wcode = DiagCodes.whitespace
     def __init__(self, directive):
         super().__init__(directive)
         self.details = "Preprocessor directive starts with whitespace"
@@ -83,7 +83,7 @@ def count_noncomment_tokens(directive):
     return len(tokens)
 
 class ComplexIfConditionDiagnostic(BaseDiagnostic):
-    wcode = diag_to_number["complex_if_condition"]
+    wcode = DiagCodes.complex_if_condition
     def __init__(self, directive):
         super().__init__(directive)
         self.details = "Logical condition looks to be overly complex"
@@ -115,7 +115,7 @@ class ComplexIfConditionDiagnostic(BaseDiagnostic):
             return ComplexIfConditionDiagnostic(directive)
 
 class SpaceAfterHashDiagnostic(BaseDiagnostic):
-    wcode = diag_to_number["space_after_leading"]
+    wcode = DiagCodes.space_after_leading
     def __init__(self, directive):
         super().__init__(directive)
         self.details = "Space between leading symbol and keyword"
@@ -129,7 +129,7 @@ class SpaceAfterHashDiagnostic(BaseDiagnostic):
             return SpaceAfterHashDiagnostic(directive)
 
 class SuggestInlineDiagnostic(BaseDiagnostic):
-    wcode = diag_to_number["suggest_inline_function"]
+    wcode = DiagCodes.suggest_inline_function
     def __init__(self, directive):
         super().__init__(directive)
         self.details = "Suggest defining a static inline function instead"
@@ -163,7 +163,7 @@ class SuggestInlineDiagnostic(BaseDiagnostic):
         return SuggestInlineDiagnostic(directive)
 
 class If0DeadCodeDiagnostic(BaseDiagnostic):
-    wcode = diag_to_number["if_0_dead_code"]
+    wcode = DiagCodes.if_0_dead_code
     def __init__(self, directive):
         super().__init__(directive)
         self.details = "Code block is always discarded. Consider removing it"
@@ -178,7 +178,7 @@ class If0DeadCodeDiagnostic(BaseDiagnostic):
             return If0DeadCodeDiagnostic(directive)
 
 class IfAlwaysTrueDiagnostic(BaseDiagnostic):
-    wcode = diag_to_number["if_always_true"]
+    wcode = DiagCodes.if_always_true
     def __init__(self, directive):
         super().__init__(directive)
         self.details = ("Code block is always included." +
@@ -194,7 +194,7 @@ class IfAlwaysTrueDiagnostic(BaseDiagnostic):
             return IfAlwaysTrueDiagnostic(directive)
 
 class SuggestVoidDiagnostic(BaseDiagnostic):
-    wcode = diag_to_number["suggest_void_function"]
+    wcode = DiagCodes.suggest_void_function
     def __init__(self, directive):
         super().__init__(directive)
         self.details = "Suggest defining a void function instead of do {} while"
@@ -222,7 +222,7 @@ class SuggestConstantDiagnostic(BaseDiagnostic):
         "BIT",
     ))
 
-    wcode = diag_to_number["suggest_const"]
+    wcode = DiagCodes.suggest_const
     def __init__(self, directive, symbol):
         super().__init__(directive)
         self.details = ("Suggest using a typed (static) const"
@@ -259,7 +259,7 @@ class SuggestConstantDiagnostic(BaseDiagnostic):
             return diag
 
 class TooLongDefineDiagnostic(BaseDiagnostic):
-    wcode = diag_to_number["too_long_define"]
+    wcode = DiagCodes.too_long_define
     line_limit = 3
     def __init__(self, directive):
         super().__init__(directive)
@@ -276,7 +276,7 @@ class TooLongDefineDiagnostic(BaseDiagnostic):
             return TooLongDefineDiagnostic(directive)
 
 class MultilineConditionalDiagnostic(BaseDiagnostic):
-    wcode = diag_to_number["multiline_conditional"]
+    wcode = DiagCodes.multiline_conditional
     def __init__(self, directive):
         super().__init__(directive)
         self.details = "Multi-line conditional statement"
