@@ -15,6 +15,7 @@ diag_to_number = {
         "suggest_void_function": 13,
         "suggest_const": 14,
         "too_long_define": 15,
+        "multiline_conditional": 16,
         # TODO using_numerical_as_def_undef # e.g #define A 1, #ifdef A
         # TODO "undef_is_bad for external symbols "
         # TODO mixed_percent_and_sharp_directives: %ifdef #if %endif #endif

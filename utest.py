@@ -406,6 +406,17 @@ class TestSimpleDirectives(unittest.TestCase):
         res = TooLongDefineDiagnostic.apply(directive)
         self.assertFalse(res) # not a #define
 
+    def test_multiline_condition(self):
+        directive = PreprocessorDirective(["#if expr1 \\",
+                                           "&& second part expression"], 1)
+        res = MultilineConditionalDiagnostic.apply(directive)
+        self.assertIsInstance(res, MultilineConditionalDiagnostic)
+
+        directive = PreprocessorDirective(["#ifdef \\",
+                                           "WHY_IS_IT_ON_NEXT_LINE"], 2)
+        res = MultilineConditionalDiagnostic.apply(directive)
+        self.assertFalse(res)
+
 
 class TestScopeDirectives(unittest.TestCase):
     def test_shallow_ifdef_nesting(self):

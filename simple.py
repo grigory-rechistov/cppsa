@@ -276,6 +276,21 @@ class TooLongDefineDiagnostic(BaseDiagnostic):
         if number_of_lines > TooLongDefineDiagnostic.line_limit:
             return TooLongDefineDiagnostic(directive)
 
+class MultilineConditionalDiagnostic(BaseDiagnostic):
+    wcode = diag_to_number["multiline_conditional"]
+    def __init__(self, directive):
+        super().__init__(directive)
+        self.details = "Multi-line conditional statement"
+
+    @staticmethod
+    def apply(directive):
+        if not directive_contains_condition(directive.hashword):
+            return
+        number_of_lines = len(directive.multi_lines)
+
+        if number_of_lines > 1:
+            return MultilineConditionalDiagnostic(directive)
+
 def run_simple_checks(pre_lines, enabled_wcodes):
     all_diagnostics    = (UnknownDirectiveDiagnostic,
                           MultiLineDiagnostic,
@@ -288,6 +303,7 @@ def run_simple_checks(pre_lines, enabled_wcodes):
                           SuggestVoidDiagnostic,
                           SuggestConstantDiagnostic,
                           TooLongDefineDiagnostic,
+                          MultilineConditionalDiagnostic,
     )
 
     enabled_diagnostics = filter_diagnostics(all_diagnostics, enabled_wcodes)
