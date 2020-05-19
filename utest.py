@@ -124,6 +124,12 @@ class TestInputFiles(unittest.TestCase):
         res = cpssa_main(argv)
         self.assertTrue(res == 0)
 
+    def test_main_on_multi_line_concat(self):
+        # Suppress multi-line warning
+        argv = ['cpssa', '-q', '-Dall,-2', 'test/two-lines-as-one']
+        res = cpssa_main(argv)
+        self.assertTrue(res == 0)
+
 class TestConstants(unittest.TestCase):
     def test_diag_to_number(self):
         # The mapping must be one-to-one

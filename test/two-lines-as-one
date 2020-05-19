@@ -1,0 +1,3 @@
+// The following two lines should be treated as a single preprocessor line
+#define CONCAT "prefix-"\
+#x "-suffix"

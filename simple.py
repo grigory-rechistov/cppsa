@@ -36,7 +36,6 @@ class MultiLineDiagnostic(BaseDiagnostic):
         if last_token == "\\":
             return MultiLineDiagnostic(directive)
 
-
 class LeadingWhitespaceDiagnostic(BaseDiagnostic):
     wcode = diag_to_number["whitespace"]
     def __init__(self, directive):
