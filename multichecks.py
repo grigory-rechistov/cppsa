@@ -10,7 +10,7 @@ class BaseMultilineDiagnostic:
         assert isinstance(description, str)
         assert isinstance(directive, PreprocessorDirective)
         self.lineno = directive.lineno
-        self.text = directive.raw_text
+        self.first_line = directive.first_line
         self.details = description
     def __repr__(self):
         return "<%s W%d at %d: %s>" % (type(self).__name__,
@@ -155,7 +155,7 @@ class UnmarkedEndifDiagnostic(BaseMultilineDiagnostic):
                     # unbalanced #endif. Abort further processing.
                     break
                 (start_lineno, start_directive) = opened_if_stack.pop()
-                start_text = start_directive.raw_text.strip()
+                start_text = start_directive.first_line.strip()
                 scope_distance = lineno - start_lineno
                 assert scope_distance > 0
                 if scope_distance <= max_distance:

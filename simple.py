@@ -8,7 +8,7 @@ class BaseDiagnostic:
     wcode = 0
     def __init__(self, directive):
         self.lineno = directive.lineno
-        self.text = directive.raw_text
+        self.first_line = directive.first_line
         self.details = "unknown diagnostic"
     def __repr__(self):
         return "<%s W%d at %d: %s>" % (type(self).__name__,
@@ -43,7 +43,7 @@ class LeadingWhitespaceDiagnostic(BaseDiagnostic):
         self.details = "Preprocessor directive starts with whitespace"
     @staticmethod
     def apply(directive):
-        if not (directive.raw_text[0] in preprocessor_prefixes):
+        if not (directive.first_line[0] in preprocessor_prefixes):
             return LeadingWhitespaceDiagnostic(directive)
 
 def has_logic_operator(t):
@@ -106,7 +106,7 @@ class ComplexIfConditionDiagnostic(BaseDiagnostic):
 
         # In absense of proper tokenizer, consider all non-alphanumeric symbols as
         # potential token delimeters
-        non_alphanum = count_non_alphanum(directive.raw_text)
+        non_alphanum = count_non_alphanum(directive.full_text)
 
         non_alphanum_threshold = 6
         if (has_operators
@@ -122,7 +122,7 @@ class SpaceAfterHashDiagnostic(BaseDiagnostic):
 
     @staticmethod
     def apply(directive):
-        txt = directive.raw_text.strip()
+        txt = directive.full_text.strip()
         if len(txt) < 2:
             return
         if txt[1] in (" ", "\t"):
@@ -151,10 +151,11 @@ class SuggestInlineDiagnostic(BaseDiagnostic):
             return
         # There must be no spaces between the opening bracket and the previous
         # letter for the line to be treated as a function-like macro. Tokenizer
-        # has eaten all whitespaces, so look for it in raw_text
-        brack_symbol_pos = directive.raw_text.find("(")
+        # has eaten all whitespaces, so look for it in the unsplit string
+        unsplit_text = directive.full_text
+        brack_symbol_pos = unsplit_text.find("(")
         assert brack_symbol_pos > 0
-        prev_symbol = directive.raw_text[brack_symbol_pos - 1]
+        prev_symbol = unsplit_text[brack_symbol_pos - 1]
         if prev_symbol.isspace(): # first bracket did not open a parameter list
             return
         if param_candidate == ")": # no parameters between brackets

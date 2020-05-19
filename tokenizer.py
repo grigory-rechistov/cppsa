@@ -74,7 +74,7 @@ class PreprocessorDirective:
             first_line = line_or_lines[0]
             self.multi_lines = line_or_lines
 
-        self.raw_text = first_line
+        self.first_line = first_line
         self.full_text = self.combine_all_lines()
         self.lineno = lineno
         stripped_txt = first_line.strip()
@@ -104,9 +104,8 @@ class PreprocessorDirective:
             suffix = ' and %d more line(s)' % (len(self.multi_lines) - 1)
         else:
             suffix = ''
-        return "<PreprocessorDirective at %d %s%s>" % (self.lineno,
-                                                       repr(self.raw_text),
-                                                       suffix)
+        return "<PreprocessorDirective at %d %s%s>" % (
+            self.lineno, repr(self.first_line), suffix)
     def is_ifndef(self):
         # Return True on either of
         # #ifndef

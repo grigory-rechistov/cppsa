@@ -164,8 +164,7 @@ def main(argv):
         for diag in displayed_diagnostics:
             (lineno, wcode, details) = (diag.lineno, diag.wcode, diag.details)
             print("%s:%d: W%d: %s" % (input_file, lineno, wcode, details) )
-            assert diag.text is not None
-            verbatim_text = diag.text.strip('\n')
+            verbatim_text = diag.first_line.strip('\n')
             print("    %s" % verbatim_text)
 
     return 0 if len(displayed_diagnostics) == 0 else 1
