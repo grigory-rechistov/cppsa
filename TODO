@@ -5,5 +5,9 @@
 - handle multi-line macros
     - add diagnostic for too long multiline continued macros
     - change existing diagnostics to look into the concatenated full_text
-- sense usage of "##", "#" inside the macrodefinitions and allow them: no static inline suggestions
+- sense usage of preprocessor-specific construct inside the macrodefinitions
+  and allow them: no void/static inline suggestions
+  - "##", "#"
+  - variadic
+  - predefined expressions: __FILE__, __LINE__ etc.
 - Add diagnostic to tell strange multiline macros: #include
