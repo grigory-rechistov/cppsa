@@ -130,6 +130,17 @@ class TestInputFiles(unittest.TestCase):
         res = cppsa_main(argv)
         self.assertTrue(res == 0)
 
+class TestCommandLineOptions(unittest.TestCase):
+    def test_analyze_true_preprocessor(self):
+        argv = ['cpssa', 'test/true-preprocessor']
+        res = cppsa_main(argv)
+        self.assertTrue(res == 0)
+
+        argv = ['cpssa', '-q', '--analyze-true-preprocessor',
+                'test/true-preprocessor']
+        res = cppsa_main(argv)
+        self.assertTrue(res == 1)
+
 class TestConstants(unittest.TestCase):
     def test_diag_to_number(self):
         # The mapping must be one-to-one

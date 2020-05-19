@@ -148,3 +148,18 @@ class PreprocessorDirective:
                 continue
             return token
         raise Exception("No alphanumeric symbols follow directive")
+
+    def uses_macro_tricks(self):
+        """Return True if the expression contains things that indeed can be best
+        be done by preprocessor"""
+        all_tokens = tokenize(self.full_text)
+        for token in all_tokens[1:]:
+            if token == "##":
+                # concatenation
+                return True
+            if token[0] == "#":
+                # stringizing
+                return True
+
+        # TODO detect:  variadic, __FILE__, __LINE__ etc.
+        return False

@@ -80,6 +80,10 @@ def parse_args(argv):
                         help='List of diagnostics separated by commas.'
                             ' Use word "all" to mean all of them, or negative'
                             ' number to disable a specific diagnostic.')
+    parser.add_argument("-a", "--analyze-true-preprocessor", action="store_true",
+                        help="""Also look into directives that make use of
+                                preprocessor-specific operations, such as
+                                stringizing""")
 
     parser.add_argument('input_file', metavar='input_file', type=str,
                         help='File to be analyzed')
@@ -149,6 +153,9 @@ def main(argv):
         whitelist = list()
 
     pre_lines = extract_preprocessor_lines(input_file)
+
+    if not opts.analyze_true_preprocessor:
+        pre_lines = list(filter(lambda l: not l.uses_macro_tricks(), pre_lines))
 
     diagnostics = list()
     diagnostics += run_simple_checks(pre_lines, enabled_wcodes)
