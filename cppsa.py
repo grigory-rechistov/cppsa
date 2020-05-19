@@ -6,6 +6,7 @@ import argparse
 import re
 
 from tokenizer import PreprocessorDirective
+from tokenizer import extract_multiline_sequence
 from directives import preprocessor_prefixes
 
 from directives import is_open_directive, is_close_directive
@@ -35,21 +36,6 @@ def read_whitelist(input_file, global_whitelist):
             if fname != input_file:
                 continue
             res.append((line, wcode))
-    return res
-
-def line_ends_with_continuation(txt):
-    txt = txt.strip()
-    return len(txt) > 0 and txt[-1] == "\\"
-
-def extract_multiline_sequence(lines, start_lineno):
-    lineno = start_lineno
-    res = []
-    while lineno < len(lines):
-        this_line = lines[lineno]
-        res.append(this_line)
-        if not line_ends_with_continuation(this_line):
-            break
-        lineno += 1
     return res
 
 def extract_preprocessor_lines(input_file):

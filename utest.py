@@ -386,6 +386,26 @@ class TestSimpleDirectives(unittest.TestCase):
         found_symbol = res.details.find("THIS_IS_SYMBOL") != -1
         self.assertTrue(found_symbol)
 
+    def test_too_long_define(self):
+        directive = PreprocessorDirective(["#define SYMBOL \\",
+                                           "one more line\\",
+                                           "and one more\\",
+                                           "now that is too long"], 1)
+        res = TooLongDefineDiagnostic.apply(directive)
+        self.assertIsInstance(res, TooLongDefineDiagnostic)
+
+        directive = PreprocessorDirective(["#define SYMBOL \\",
+                                           "one more line\\",
+                                           "just not too long"], 2)
+        res = TooLongDefineDiagnostic.apply(directive)
+        self.assertFalse(res)
+
+        directive = PreprocessorDirective(["#ifdef SYMBOL \\",
+                                           "this is not a define\\",
+                                           "why so many lines"], 3)
+        res = TooLongDefineDiagnostic.apply(directive)
+        self.assertFalse(res) # not a #define
+
 
 class TestScopeDirectives(unittest.TestCase):
     def test_shallow_ifdef_nesting(self):

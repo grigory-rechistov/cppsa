@@ -259,6 +259,23 @@ class SuggestConstantDiagnostic(BaseDiagnostic):
             # Not much deviation from #define SYMBOL LITERAL
             return diag
 
+class TooLongDefineDiagnostic(BaseDiagnostic):
+    wcode = diag_to_number["too_long_define"]
+    line_limit = 3
+    def __init__(self, directive):
+        super().__init__(directive)
+        self.details = ("Multi-line definition is longer than %d lines" %
+                        self.line_limit)
+
+    @staticmethod
+    def apply(directive):
+        if not directive_is_definition(directive.hashword):
+            return
+        number_of_lines = len(directive.multi_lines)
+
+        if number_of_lines > TooLongDefineDiagnostic.line_limit:
+            return TooLongDefineDiagnostic(directive)
+
 def run_simple_checks(pre_lines, enabled_wcodes):
     all_diagnostics    = (UnknownDirectiveDiagnostic,
                           MultiLineDiagnostic,
@@ -270,6 +287,7 @@ def run_simple_checks(pre_lines, enabled_wcodes):
                           IfAlwaysTrueDiagnostic,
                           SuggestVoidDiagnostic,
                           SuggestConstantDiagnostic,
+                          TooLongDefineDiagnostic,
     )
 
     enabled_diagnostics = filter_diagnostics(all_diagnostics, enabled_wcodes)
