@@ -6,3 +6,4 @@
 - handle multi-line macros
     - change existing diagnostics to look into the concatenated full_text
 - Add diagnostic to tell strange multiline macros: #include
+- Exlude W2 from the default list of enabled diagnostics
