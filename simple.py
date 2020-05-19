@@ -1,7 +1,7 @@
 # Collection of simple diagnostics working on a single text line
 
-from directives import all_directives, preprocessor_prefixes
-from directives import directive_contains_condition, directive_is_definition
+from keywords import all_directives, preprocessor_prefixes
+from keywords import directive_contains_condition, directive_is_definition
 from diagcodes import DiagCodes, filter_diagnostics
 
 class BaseDiagnostic:

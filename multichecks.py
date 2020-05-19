@@ -1,7 +1,7 @@
 from tokenizer import PreprocessorDirective
 
-from directives import is_open_directive, is_close_directive
-from directives import DEFINE, CPLUSPLUS
+from keywords import is_open_directive, is_close_directive
+from keywords import DEFINE, CPLUSPLUS
 from diagcodes import DiagCodes, filter_diagnostics
 
 class BaseMultilineDiagnostic:

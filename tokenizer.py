@@ -1,7 +1,7 @@
 # Tokenizing directives and routines
 
 import re
-from directives import IFNDEF, IF, IFDEF, std_predefined_macros, variadic_macros
+from keywords import IFNDEF, IF, IFDEF, std_predefined_macros, variadic_macros
 
 def is_alnum_underscore(s):
     return re.match(r'^[A-Za-z0-9_]+$', s) is not None

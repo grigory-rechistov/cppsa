@@ -5,7 +5,7 @@ from cppsa import parse_diag_spec_line
 from cppsa import line_is_preprocessor_directive
 from tokenizer import extract_multiline_sequence, line_ends_with_continuation
 from tokenizer import PreprocessorDirective, tokenize
-from directives import is_open_directive, is_close_directive
+from keywords import is_open_directive, is_close_directive
 
 from simple import *
 from multichecks import *

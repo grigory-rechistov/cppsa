@@ -7,7 +7,7 @@ import re
 
 from tokenizer import PreprocessorDirective
 from tokenizer import extract_multiline_sequence
-from directives import line_is_preprocessor_directive
+from keywords import line_is_preprocessor_directive
 from diagcodes import all_wcodes
 
 from simple import run_simple_checks
