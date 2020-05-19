@@ -5,8 +5,4 @@
 - handle quoted string context
 - handle multi-line macros
     - change existing diagnostics to look into the concatenated full_text
-- sense usage of preprocessor-specific construct inside the macrodefinitions
-  and allow them: no void/static inline suggestions
-  - variadic
-  - predefined expressions: __FILE__, __LINE__ etc.
 - Add diagnostic to tell strange multiline macros: #include

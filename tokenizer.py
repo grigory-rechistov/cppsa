@@ -151,7 +151,7 @@ class PreprocessorDirective:
 
     def uses_macro_tricks(self):
         """Return True if the expression contains things that indeed can be best
-        be done by preprocessor"""
+        done by preprocessor"""
         all_tokens = tokenize(self.full_text)
         for token in all_tokens[1:]:
             if token == "##":
