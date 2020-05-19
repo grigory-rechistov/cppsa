@@ -1,6 +1,6 @@
 # These are unit tests
 
-from cppsa import main as cpssa_main
+from cppsa import main as cppsa_main
 from cppsa import parse_diag_spec_line
 from cppsa import line_is_preprocessor_directive
 from tokenizer import extract_multiline_sequence, line_ends_with_continuation
@@ -96,38 +96,38 @@ class TestInputFiles(unittest.TestCase):
     # Pass '-q' to main to suppress litter in stdout
     def test_main_on_basic(self):
         argv = ['cpssa', '-q', 'test/basic']
-        res = cpssa_main(argv)
+        res = cppsa_main(argv)
         self.assertTrue(res == 0)
 
     def test_main_on_unknown(self):
         argv = ['cpssa', '-q', 'test/unknown']
-        res = cpssa_main(argv)
+        res = cppsa_main(argv)
         self.assertTrue(res == 1)
 
     def test_main_on_unknown_with_whitelist(self):
         argv = ['cpssa', '-q', '--whitelist', 'test/unknown-wl', 'test/unknown']
-        res = cpssa_main(argv)
+        res = cppsa_main(argv)
         self.assertFalse(res)
 
     def test_main_on_unmarked_endif(self):
         argv = ['cpssa', '-q', 'test/unmarked-endif']
-        res = cpssa_main(argv)
+        res = cppsa_main(argv)
         self.assertTrue(res == 1)
 
     def test_main_on_suggest_inline_func(self):
         argv = ['cpssa', '-q', 'test/inline-func']
-        res = cpssa_main(argv)
+        res = cppsa_main(argv)
         self.assertTrue(res == 1)
 
     def test_main_on_empty_diag_list(self):
         argv = ['cpssa', '-q', '-D-all', 'test/file-with-problems']
-        res = cpssa_main(argv)
+        res = cppsa_main(argv)
         self.assertTrue(res == 0)
 
     def test_main_on_multi_line_concat(self):
         # Suppress multi-line warning
         argv = ['cpssa', '-q', '-Dall,-2', 'test/two-lines-as-one']
-        res = cpssa_main(argv)
+        res = cppsa_main(argv)
         self.assertTrue(res == 0)
 
 class TestConstants(unittest.TestCase):
