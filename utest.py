@@ -187,6 +187,35 @@ class TestContinuedMultilineDirective(unittest.TestCase):
         ft = directive.full_text
         self.assertEqual(ft, "hh jj")
 
+class TestMacroTricks(unittest.TestCase):
+    def test_line_and_file(self):
+        directive = PreprocessorDirective(['#define A "file" __FILE__'], 1)
+        self.assertTrue(directive.uses_macro_tricks())
+
+        directive = PreprocessorDirective(['#define A "line" __LINE__'], 2)
+        self.assertTrue(directive.uses_macro_tricks())
+
+    def test_no_match(self):
+        directive = PreprocessorDirective(["#ifdef __GNUC__"], 1)
+        self.assertFalse(directive.uses_macro_tricks())
+
+    def test_concat(self):
+        directive = PreprocessorDirective(['#define A(x,y) A##B'], 1)
+        self.assertTrue(directive.uses_macro_tricks())
+
+    def test_stringify(self):
+        directive = PreprocessorDirective(['#define A(x,y) A #x'], 1)
+        self.assertTrue(directive.uses_macro_tricks())
+
+    def test_variadic(self):
+        directive = PreprocessorDirective(['#define PP(x,...) printf(x)'], 1)
+        self.assertTrue(directive.uses_macro_tricks())
+
+        # Mangle ellipsis ... so that it will not trigger the match
+        directive = PreprocessorDirective(
+            "#define eprintf(. . .) fprintf (stderr, __VA_ARGS__)", 1)
+        self.assertTrue(directive.uses_macro_tricks())
+
 class TestSimpleDirectives(unittest.TestCase):
 
     def test_indented_directive(self):

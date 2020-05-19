@@ -1,4 +1,4 @@
-# Tokens recognized in analyzed files
+# Keywords of C/C++ preprocessor
 
 include_meta_directives = True
 
@@ -23,6 +23,12 @@ P_ELSE = "\%else"
 
 std_directives = (INCLUDE, DEFINE, UNDEF, IFDEF, IFNDEF, IF, ELSE, ELIF, ENDIF,
                   ERROR, PRAGMA)
+
+# Do not include __cplusplus as it is treated specially
+std_predefined_macros = frozenset(("__FILE__", "__LINE__", "__DATE__", "__TIME__",
+    "__func__", "__FUNCTION__"))
+
+variadic_macros = frozenset(("...", "__VA_ARGS__", "__VA_OPT__"))
 
 if include_meta_directives:
     all_directives = std_directives + (P_IF, P_IFDEF, P_IFNDEF, P_ENDIF,

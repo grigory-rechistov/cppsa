@@ -1,7 +1,7 @@
 # Tokenizing directives and routines
 
 import re
-from directives import IFNDEF, IF, IFDEF
+from directives import IFNDEF, IF, IFDEF, std_predefined_macros, variadic_macros
 
 def is_alnum_underscore(s):
     return re.match(r'^[A-Za-z0-9_]+$', s) is not None
@@ -160,6 +160,9 @@ class PreprocessorDirective:
             if token[0] == "#":
                 # stringizing
                 return True
-
-        # TODO detect:  variadic, __FILE__, __LINE__ etc.
+            if token in std_predefined_macros:
+                # __LINE__ etc.
+                return True
+            if token in variadic_macros:
+                return True
         return False
