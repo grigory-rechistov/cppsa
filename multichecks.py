@@ -1,7 +1,7 @@
 from tokenizer import PreprocessorDirective
 
 from directives import is_open_directive, is_close_directive
-from directives import DEFINE
+from directives import DEFINE, CPLUSPLUS
 from diagcodes import diag_to_number, filter_diagnostics
 
 class BaseMultilineDiagnostic:
@@ -55,7 +55,7 @@ def sense_for_global_cplusplus_guard(pre_lines):
 
     ifdef_cplusplus_found = 0
     for line in pre_lines:
-        if line.is_ifdef() and (line.first_symbol() == "__cplusplus"):
+        if line.is_ifdef() and (line.first_symbol() == CPLUSPLUS):
             ifdef_cplusplus_found += 1
     return ifdef_cplusplus_found == 1
 

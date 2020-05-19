@@ -24,6 +24,7 @@ P_ELSE = "\%else"
 std_directives = (INCLUDE, DEFINE, UNDEF, IFDEF, IFNDEF, IF, ELSE, ELIF, ENDIF,
                   ERROR, PRAGMA)
 
+CPLUSPLUS = "__cplusplus"
 # Do not include __cplusplus as it is treated specially
 std_predefined_macros = frozenset(("__FILE__", "__LINE__", "__DATE__", "__TIME__",
     "__func__", "__FUNCTION__"))
