@@ -3,4 +3,6 @@
 - add typed variable whitelist diagnostic
 - handle (multi-line) comments properly
 - handle quoted string context
+- handle brackets context
+  - directives should not be placed inside brackets, quotes, comments
 - Exclude W2 from the default list of enabled diagnostics

@@ -36,18 +36,26 @@ def read_whitelist(input_file, global_whitelist):
     return res
 
 def extract_preprocessor_lines(input_file):
+    # TODO use enums instead
+    OUTSIDE = 0
+    INSIDE_C_COMMENT = 1
+    INSIDE_CPP_COMMENT = 2
+    INSIDE_QUOTES = 3
     res = list()
     with open(input_file) as f:
         lines = f.readlines()
     lineno = 0
+    rolling_state = OUTSIDE
     while lineno < len(lines):
-        if line_is_preprocessor_directive(lines[lineno]):
+        cur_line = lines[lineno]
+        if line_is_preprocessor_directive(cur_line):
             multi_lines = extract_multiline_sequence(lines, lineno)
             human_lineno = lineno + 1
             res.append(PreprocessorDirective(multi_lines, human_lineno))
             lineno += len(multi_lines)
         else:
             lineno += 1
+        rolling_state =
     return res
 
 def filter_diagnostics(diagnostics, whitelist):
