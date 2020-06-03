@@ -6,6 +6,7 @@ from cppsa import line_is_preprocessor_directive
 from tokenizer import extract_multiline_sequence, line_ends_with_continuation
 from tokenizer import PreprocessorDirective, tokenize
 from keywords import is_open_directive, is_close_directive
+from rolling import update_language_context, Context
 
 from simple import *
 from multichecks import *
@@ -764,6 +765,18 @@ class TestDiagSpecParsing(unittest.TestCase):
         all = set((1, 2, 5, 99))
         (res, err)= parse_diag_spec_line("1,1,1,1,", all)
         self.assertNotEqual(err, set((1,)))
+
+class TestLanguageContext(unittest.TestCase):
+    def test_into_comment(self):
+        lines = ["aaaa /*   \n", "bbbb \n"]
+        new_context = update_language_context(lines, Context.OUTSIDE)
+        self.assertEqual(new_context, Context.COMMENT)
+
+    def test_after_comment_closed(self):
+        lines = ["aaaa /*   \n", "bbbb \n", "ccc */ dddd\n"]
+        new_context = update_language_context(lines, Context.OUTSIDE)
+        self.assertEqual(new_context, Context.OUTSIDE)
+
 
 if __name__ == '__main__':
     unittest.main()
