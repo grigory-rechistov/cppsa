@@ -9,6 +9,7 @@ from tokenizer import PreprocessorDirective
 from tokenizer import extract_multiline_sequence
 from keywords import line_is_preprocessor_directive
 from diagcodes import all_wcodes
+from rolling import update_language_context, Context
 
 from simple import run_simple_checks
 from multichecks import run_complex_checks
@@ -36,16 +37,11 @@ def read_whitelist(input_file, global_whitelist):
     return res
 
 def extract_preprocessor_lines(input_file):
-    # TODO use enums instead
-    OUTSIDE = 0
-    INSIDE_C_COMMENT = 1
-    INSIDE_CPP_COMMENT = 2
-    INSIDE_QUOTES = 3
     res = list()
     with open(input_file) as f:
         lines = f.readlines()
     lineno = 0
-    rolling_state = OUTSIDE
+    rolling_state = Context.OUTSIDE
     while lineno < len(lines):
         cur_line = lines[lineno]
         if line_is_preprocessor_directive(cur_line):
@@ -55,7 +51,7 @@ def extract_preprocessor_lines(input_file):
             lineno += len(multi_lines)
         else:
             lineno += 1
-        rolling_state =
+        rolling_state = update_language_context(cur_line, rolling_state)
     return res
 
 def filter_diagnostics(diagnostics, whitelist):
