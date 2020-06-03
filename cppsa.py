@@ -49,9 +49,10 @@ def extract_preprocessor_lines(input_file):
             human_lineno = lineno + 1
             res.append(PreprocessorDirective(multi_lines, human_lineno))
             lineno += len(multi_lines)
+            rolling_state = update_language_context(multi_lines, rolling_state)
         else:
             lineno += 1
-        rolling_state = update_language_context(cur_line, rolling_state)
+            rolling_state = update_language_context([cur_line], rolling_state)
     return res
 
 def filter_diagnostics(diagnostics, whitelist):
