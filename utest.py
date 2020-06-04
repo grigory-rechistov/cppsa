@@ -643,7 +643,7 @@ class TestIncludeGuards(unittest.TestCase):
             PreprocessorDirective("#define HEADER_GUARD", 2),
             PreprocessorDirective("#endif", 3),
         )
-#        import pdb; pdb.set_trace()
+
         self.assertTrue(sense_for_include_guard(dirs))
 
     def test_include_guard_detection_mismatch_symbol(self):
@@ -777,6 +777,27 @@ class TestLanguageContext(unittest.TestCase):
         new_context = update_language_context(lines, Context.OUTSIDE)
         self.assertEqual(new_context, Context.OUTSIDE)
 
+    def test_inside_comment(self):
+        lines = ["/*aaaa /*   \n"]
+        new_context = update_language_context(lines, Context.OUTSIDE)
+        self.assertEqual(new_context, Context.COMMENT)
+
+        lines = ["/* bbbb \n", "// cccc" ]
+        new_context = update_language_context(lines, Context.OUTSIDE)
+        self.assertEqual(new_context, Context.COMMENT)
+
+    def test_slash_comment(self):
+        lines = ["aaaa //   \n"]
+        new_context = update_language_context(lines, Context.OUTSIDE)
+        self.assertEqual(new_context, Context.OUTSIDE)
+
+        lines = ["bbbb // /*  \n"]
+        new_context = update_language_context(lines, Context.OUTSIDE)
+        self.assertEqual(new_context, Context.OUTSIDE)
+
+        lines = ["\ncccc // dddd"]
+        new_context = update_language_context(lines, Context.OUTSIDE)
+        self.assertEqual(new_context, Context.SLASH_COMMENT)
 
 if __name__ == '__main__':
     unittest.main()
