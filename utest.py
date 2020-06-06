@@ -98,12 +98,12 @@ class TestInputFiles(unittest.TestCase):
     def test_main_on_basic(self):
         argv = ['cpssa', '-q', 'test/basic']
         res = cppsa_main(argv)
-        self.assertTrue(res == 0)
+        self.assertEqual(res, 0)
 
     def test_main_on_unknown(self):
         argv = ['cpssa', '-q', 'test/unknown']
         res = cppsa_main(argv)
-        self.assertTrue(res == 1)
+        self.assertEqual(res, 1)
 
     def test_main_on_unknown_with_whitelist(self):
         argv = ['cpssa', '-q', '--whitelist', 'test/unknown-wl', 'test/unknown']
@@ -113,41 +113,41 @@ class TestInputFiles(unittest.TestCase):
     def test_main_on_unmarked_endif(self):
         argv = ['cpssa', '-q', 'test/unmarked-endif']
         res = cppsa_main(argv)
-        self.assertTrue(res == 1)
+        self.assertEqual(res, 1)
 
     def test_main_on_suggest_inline_func(self):
         argv = ['cpssa', '-q', 'test/inline-func']
         res = cppsa_main(argv)
-        self.assertTrue(res == 1)
+        self.assertEqual(res, 1)
 
     def test_main_on_empty_diag_list(self):
         argv = ['cpssa', '-q', '-D-all', 'test/file-with-problems']
         res = cppsa_main(argv)
-        self.assertTrue(res == 0)
+        self.assertEqual(res, 0)
 
     def test_main_on_multi_line_concat(self):
         # Suppress multi-line warning
         argv = ['cpssa', '-q', '-Dall,-2', 'test/two-lines-as-one']
         res = cppsa_main(argv)
-        self.assertTrue(res == 0)
+        self.assertEqual(res, 0)
 
     def test_main_on_directive_inside_comment(self):
-        # Suppress multi-line warning
         argv = ['cpssa', '-q', '-Dall', 'test/directive-inside-comment']
         res = cppsa_main(argv)
-        self.assertTrue(res == 1)
+        self.assertEqual(res, 1)
+
 
 
 class TestCommandLineOptions(unittest.TestCase):
     def test_analyze_true_preprocessor(self):
         argv = ['cpssa', 'test/true-preprocessor']
         res = cppsa_main(argv)
-        self.assertTrue(res == 0)
+        self.assertEqual(res, 0)
 
         argv = ['cpssa', '-q', '--analyze-true-preprocessor',
                 'test/true-preprocessor']
         res = cppsa_main(argv)
-        self.assertTrue(res == 1)
+        self.assertEqual(res, 1)
 
 class TestDirectiveTokens(unittest.TestCase):
     def test_space_between_hash_and_keyword(self):
