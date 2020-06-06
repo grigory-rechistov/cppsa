@@ -3,14 +3,13 @@
 from enum import Enum
 
 BACKSLASH = "\\"
-tokens = frozenset(("/*", "*/", "//", "\n", BACKSLASH)) # TODO more tokens: ", ( ) {}
+tokens = frozenset(("/*", "*/", "//", "\n", BACKSLASH, '"'))
 
 class Context(Enum):
     OUTSIDE = "normal environment"
     COMMENT = "multi-line comment"
     SLASH_COMMENT = "single-line comment"
     QUOTES = "quoted string"
-    BRACKETS = "brackets"
 
 def find_next_token(line, tokens):
     # Look for the earliest match of any of tokens
@@ -34,6 +33,7 @@ def transfer(context, token):
         "*/": Context.OUTSIDE,
         "\n": Context.OUTSIDE,
         BACKSLASH: Context.OUTSIDE,
+        '"': Context.QUOTES
     }
     map_comment = {
         "*/": Context.OUTSIDE,
@@ -41,6 +41,7 @@ def transfer(context, token):
         "/*": Context.COMMENT,
         "//": Context.COMMENT,
         BACKSLASH: Context.COMMENT,
+        '"': Context.COMMENT
     }
 
     map_slash_comment = {
@@ -49,12 +50,23 @@ def transfer(context, token):
         "/*": Context.SLASH_COMMENT,
         "//": Context.SLASH_COMMENT,
         BACKSLASH: Context.SLASH_COMMENT,
+        '"': Context.SLASH_COMMENT
+    }
+
+    map_quotes = {
+        "\n": Context.QUOTES, # Or Context.OUTSIDE, it is syntax error anyway
+        "*/": Context.QUOTES,
+        "/*": Context.QUOTES,
+        "//": Context.QUOTES,
+        BACKSLASH: Context.QUOTES,
+        '"': Context.OUTSIDE
     }
 
     table = {
         Context.OUTSIDE: map_outside,
         Context.COMMENT: map_comment,
         Context.SLASH_COMMENT: map_slash_comment,
+        Context.QUOTES: map_quotes
     }
 
     # Make sure all input tokens are handled in all sub-tables

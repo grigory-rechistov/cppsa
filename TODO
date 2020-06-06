@@ -1,7 +1,5 @@
 ==Things to work on==
 
 - add typed variable whitelist diagnostic
-- handle quoted string context
-  - directives should not be placed inside brackets, quotes, comments
 - Exclude W2 from the default list of enabled diagnostics
 - Do not report diagnostic W1 for non-outside contexts

@@ -1,0 +1,5 @@
+
+string str = " This is line \
+#define D() 1 \
+
+in the middle"

@@ -141,6 +141,11 @@ class TestInputFiles(unittest.TestCase):
         res = cppsa_main(argv)
         self.assertEqual(res, 1)
 
+    def test_main_on_directive_inside_quotes(self):
+        argv = ['cpssa', '-q', '-Dall,-2', 'test/directive-inside-quotes']
+        res = cppsa_main(argv)
+        self.assertEqual(res, 1)
+
 
 class TestCommandLineOptions(unittest.TestCase):
     def test_analyze_true_preprocessor(self):
