@@ -1,15 +1,16 @@
 # Tracking of rolling context of C-based source file
 
-from enum import Enum, auto
+from enum import Enum
 
 tokens = frozenset(("/*", "*/", "//", "\n")) # TODO more tokens: \\, ", ( ) {}
 
 class Context(Enum):
-    OUTSIDE = auto()
-    COMMENT = auto()
-    SLASH_COMMENT = auto()
-    QUOTES = auto()
-    BRACKETS = auto()
+    # Python 3.5 does not have auto()
+    OUTSIDE = 1
+    COMMENT = 2
+    SLASH_COMMENT = 3
+    QUOTES = 4
+    BRACKETS = 5
 
 
 def find_next_token(line, tokens):

@@ -41,18 +41,19 @@ def extract_preprocessor_lines(input_file):
     with open(input_file) as f:
         lines = f.readlines()
     lineno = 0
-    rolling_state = Context.OUTSIDE
+    context = Context.OUTSIDE
     while lineno < len(lines):
         cur_line = lines[lineno]
         if line_is_preprocessor_directive(cur_line):
             multi_lines = extract_multiline_sequence(lines, lineno)
             human_lineno = lineno + 1
-            res.append(PreprocessorDirective(multi_lines, human_lineno))
+            res.append(PreprocessorDirective(multi_lines,
+                                             human_lineno, context))
             lineno += len(multi_lines)
-            rolling_state = update_language_context(multi_lines, rolling_state)
+            context = update_language_context(multi_lines, context)
         else:
             lineno += 1
-            rolling_state = update_language_context([cur_line], rolling_state)
+            context = update_language_context([cur_line], context)
     return res
 
 def filter_diagnostics(diagnostics, whitelist):

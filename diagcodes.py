@@ -20,6 +20,7 @@ class DiagCodes(IntEnum):
     suggest_const = 14
     too_long_define = 15
     multiline_conditional = 16
+    wrong_context = 17
 
 all_wcodes = frozenset(int(m) for m in DiagCodes.__members__.values())
 

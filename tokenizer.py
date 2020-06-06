@@ -2,6 +2,7 @@
 
 import re
 from keywords import IFNDEF, IF, IFDEF, std_predefined_macros, variadic_macros
+from rolling import Context
 
 def is_alnum_underscore(s):
     return re.match(r'^[A-Za-z0-9_]+$', s) is not None
@@ -65,7 +66,7 @@ def extract_multiline_sequence(lines, start_lineno):
 
 class PreprocessorDirective:
     "Tokenized preprocessor line(s)"
-    def __init__(self, line_or_lines, lineno):
+    def __init__(self, line_or_lines, lineno, context = Context.OUTSIDE):
         assert line_or_lines
         if isinstance(line_or_lines, str):
             first_line = line_or_lines
@@ -77,6 +78,7 @@ class PreprocessorDirective:
         self.first_line = first_line
         self.full_text = self.combine_all_lines()
         self.lineno = lineno
+        self.context = context
         stripped_txt = self.full_text.strip()
         assert stripped_txt, "Line must have at least one symbol (# or similar)"
         tokens = tokenize(stripped_txt)

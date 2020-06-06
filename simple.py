@@ -3,6 +3,7 @@
 from keywords import all_directives, preprocessor_prefixes
 from keywords import directive_contains_condition, directive_is_definition
 from diagcodes import DiagCodes, filter_diagnostics
+from rolling import Context
 
 class BaseDiagnostic:
     wcode = 0
@@ -277,6 +278,20 @@ class TooLongDefineDiagnostic(BaseDiagnostic):
         if number_of_lines > TooLongDefineDiagnostic.line_limit:
             return TooLongDefineDiagnostic(directive)
 
+class WrongContextDiagnostic(BaseDiagnostic):
+    wcode = DiagCodes.multiline_conditional
+    def __init__(self, directive):
+        super().__init__(directive)
+        str_context = "TODO"
+
+        self.details = "Preprocessor directive inside %s block"
+
+    @staticmethod
+    def apply(directive):
+        if directive.context == Context.OUTSIDE:
+            return
+        return WrongContextDiagnostic(directive)
+
 class MultilineConditionalDiagnostic(BaseDiagnostic):
     wcode = DiagCodes.multiline_conditional
     def __init__(self, directive):
@@ -292,6 +307,7 @@ class MultilineConditionalDiagnostic(BaseDiagnostic):
         if number_of_lines > 1:
             return MultilineConditionalDiagnostic(directive)
 
+
 def run_simple_checks(pre_lines, enabled_wcodes):
     all_diagnostics    = (UnknownDirectiveDiagnostic,
                           MultiLineDiagnostic,
@@ -305,6 +321,7 @@ def run_simple_checks(pre_lines, enabled_wcodes):
                           SuggestConstantDiagnostic,
                           TooLongDefineDiagnostic,
                           MultilineConditionalDiagnostic,
+                          WrongContextDiagnostic,
     )
 
     enabled_diagnostics = filter_diagnostics(all_diagnostics, enabled_wcodes)

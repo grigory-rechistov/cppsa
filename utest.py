@@ -799,5 +799,12 @@ class TestLanguageContext(unittest.TestCase):
         new_context = update_language_context(lines, Context.OUTSIDE)
         self.assertEqual(new_context, Context.SLASH_COMMENT)
 
+class TestDirectivesInContext(unittest.TestCase):
+    def test_directive_insize_wrong_context(self):
+        directive = PreprocessorDirective("#define A", 1, Context.COMMENT)
+        res = WrongContextDiagnostic.apply(directive)
+        self.assertIsInstance(res, WrongContextDiagnostic)
+
+
 if __name__ == '__main__':
     unittest.main()
