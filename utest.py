@@ -136,6 +136,10 @@ class TestInputFiles(unittest.TestCase):
         res = cppsa_main(argv)
         self.assertEqual(res, 1)
 
+    def test_main_on_directive_inside_slashes(self):
+        argv = ['cpssa', '-q', '-Dall', 'test/directive-inside-slashes']
+        res = cppsa_main(argv)
+        self.assertEqual(res, 1)
 
 
 class TestCommandLineOptions(unittest.TestCase):

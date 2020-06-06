@@ -2,7 +2,8 @@
 
 from enum import Enum
 
-tokens = frozenset(("/*", "*/", "//", "\n")) # TODO more tokens: \\, ", ( ) {}
+BACKSLASH = "\\"
+tokens = frozenset(("/*", "*/", "//", "\n", BACKSLASH)) # TODO more tokens: ", ( ) {}
 
 class Context(Enum):
     OUTSIDE = "normal environment"
@@ -32,12 +33,14 @@ def transfer(context, token):
         "//": Context.SLASH_COMMENT,
         "*/": Context.OUTSIDE,
         "\n": Context.OUTSIDE,
+        BACKSLASH: Context.OUTSIDE,
     }
     map_comment = {
         "*/": Context.OUTSIDE,
         "\n": Context.COMMENT,
         "/*": Context.COMMENT,
         "//": Context.COMMENT,
+        BACKSLASH: Context.COMMENT,
     }
 
     map_slash_comment = {
@@ -45,6 +48,7 @@ def transfer(context, token):
         "*/": Context.SLASH_COMMENT,
         "/*": Context.SLASH_COMMENT,
         "//": Context.SLASH_COMMENT,
+        BACKSLASH: Context.SLASH_COMMENT,
     }
 
     table = {
@@ -68,6 +72,11 @@ def update_language_context(lines, old_state):
         (next_token, delta) = find_next_token(line[pos:], tokens)
         if next_token is None: # EOL
             return context
+        if next_token == BACKSLASH:
+            # Skip everything up to the backslash and one following symbol
+            # XXX this does not sound too reliable
+            pos += delta + len(next_token) + 1
+            continue
         context = transfer(context, next_token)
         pos += delta + len(next_token)
 
