@@ -131,6 +131,13 @@ class TestInputFiles(unittest.TestCase):
         res = cppsa_main(argv)
         self.assertTrue(res == 0)
 
+    def test_main_on_directive_inside_comment(self):
+        # Suppress multi-line warning
+        argv = ['cpssa', '-q', '-Dall', 'test/directive-inside-comment']
+        res = cppsa_main(argv)
+        self.assertTrue(res == 1)
+
+
 class TestCommandLineOptions(unittest.TestCase):
     def test_analyze_true_preprocessor(self):
         argv = ['cpssa', 'test/true-preprocessor']
