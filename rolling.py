@@ -5,13 +5,11 @@ from enum import Enum
 tokens = frozenset(("/*", "*/", "//", "\n")) # TODO more tokens: \\, ", ( ) {}
 
 class Context(Enum):
-    # Python 3.5 does not have auto()
-    OUTSIDE = 1
-    COMMENT = 2
-    SLASH_COMMENT = 3
-    QUOTES = 4
-    BRACKETS = 5
-
+    OUTSIDE = "normal environment"
+    COMMENT = "multi-line comment"
+    SLASH_COMMENT = "single-line comment"
+    QUOTES = "quoted string"
+    BRACKETS = "brackets"
 
 def find_next_token(line, tokens):
     # Look for the earliest match of any of tokens

@@ -282,9 +282,8 @@ class WrongContextDiagnostic(BaseDiagnostic):
     wcode = DiagCodes.multiline_conditional
     def __init__(self, directive):
         super().__init__(directive)
-        str_context = "TODO"
-
-        self.details = "Preprocessor directive inside %s block"
+        str_context = directive.context.value
+        self.details = "Preprocessor directive inside %s" % str_context
 
     @staticmethod
     def apply(directive):
