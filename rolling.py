@@ -26,54 +26,55 @@ def find_next_token(line, tokens):
             min_token = token
     return (min_token, min_pos)
 
-def transfer(context, token):
-    map_outside = {
+map_outside = {
         "/*": Context.COMMENT,
         "//": Context.SLASH_COMMENT,
         "*/": Context.OUTSIDE,
         "\n": Context.OUTSIDE,
         BACKSLASH: Context.OUTSIDE,
         '"': Context.QUOTES
-    }
-    map_comment = {
+}
+map_comment = {
         "*/": Context.OUTSIDE,
         "\n": Context.COMMENT,
         "/*": Context.COMMENT,
         "//": Context.COMMENT,
         BACKSLASH: Context.COMMENT,
         '"': Context.COMMENT
-    }
+}
 
-    map_slash_comment = {
+map_slash_comment = {
         "\n": Context.OUTSIDE,
         "*/": Context.SLASH_COMMENT,
         "/*": Context.SLASH_COMMENT,
         "//": Context.SLASH_COMMENT,
         BACKSLASH: Context.SLASH_COMMENT,
         '"': Context.SLASH_COMMENT
-    }
+}
 
-    map_quotes = {
+map_quotes = {
         "\n": Context.QUOTES, # Or Context.OUTSIDE, it is syntax error anyway
         "*/": Context.QUOTES,
         "/*": Context.QUOTES,
         "//": Context.QUOTES,
         BACKSLASH: Context.QUOTES,
         '"': Context.OUTSIDE
-    }
+}
 
-    table = {
+transfer_table = {
         Context.OUTSIDE: map_outside,
         Context.COMMENT: map_comment,
         Context.SLASH_COMMENT: map_slash_comment,
         Context.QUOTES: map_quotes
-    }
+}
 
-    # Make sure all input tokens are handled in all sub-tables
-    for item in table.values():
-        assert(tokens == frozenset(item.keys())), "sub-table is complete"
+# Make sure all input tokens are handled in all sub-tables
+for item in transfer_table.values():
+    assert(tokens == frozenset(item.keys())), "sub-table is complete"
 
-    sub_table = table[context]
+
+def transfer(context, token):
+    sub_table = transfer_table[context]
     return sub_table[token]
 
 def update_language_context(lines, old_state):
