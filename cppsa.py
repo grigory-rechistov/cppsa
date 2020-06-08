@@ -166,6 +166,8 @@ def main(argv):
 
     # Filter collected diagnostics against the whitelist
     displayed_diagnostics = filter_diagnostics(diagnostics, whitelist)
+    # Sort the output by line number
+    displayed_diagnostics = sorted(displayed_diagnostics, key=lambda x:x.lineno)
     if not quiet:
         for diag in displayed_diagnostics:
             (lineno, wcode, details) = (diag.lineno, diag.wcode, diag.details)
