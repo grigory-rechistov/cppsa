@@ -233,8 +233,7 @@ class SuggestConstantDiagnostic(BaseDiagnostic):
     wcode = DiagCodes.suggest_const
     def __init__(self, directive, symbol):
         super().__init__(directive)
-        self.details = ("Suggest using a typed (static) const"
-                        " variable or enum for %s" % symbol)
+        self.details = ("Suggest using an enum constant for %s" % symbol)
 
     @staticmethod
     def apply(directive):
