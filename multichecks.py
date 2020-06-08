@@ -167,7 +167,8 @@ class UnmarkedEndifDiagnostic(BaseMultilineDiagnostic):
                 #      it can be easily checked
                 if len(endif_tokens) < 2: # #endif plus at least something
                     description = ("No trailing comment to match opening" +
-                                    " directive '%s' at line %d (%d lines apart)" % (start_text, start_lineno, scope_distance))
+                            " directive '%s' at line %d (%d lines apart)" %
+                            (start_text, start_lineno, scope_distance))
                     unmarked_w = UnmarkedEndifDiagnostic(directive, description)
                     res.append(unmarked_w)
         return res
