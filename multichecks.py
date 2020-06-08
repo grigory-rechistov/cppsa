@@ -95,18 +95,17 @@ class UnbalancedEndifDiagnostic(BaseMultilineDiagnostic):
     @staticmethod
     def apply_to_lines(pre_lines):
         res = list()
-        opened_if_stack = []
+        depth = 0
         for directive in pre_lines:
-            lineno = directive.lineno
             if is_open_directive(directive.hashword):
-                opened_if_stack.append(lineno)
+                depth += 1
             elif is_close_directive(directive.hashword):
-                if len(opened_if_stack) == 0:
+                if depth == 0:
                     unbalanced_endif = UnbalancedEndifDiagnostic(directive,
                                         "Unbalanced closing directive found")
                     res.append(unbalanced_endif)
                     break
-                opened_if_stack.pop()
+                depth -= 1
         return res
 
 class UnbalancedIfDiagnostic(BaseMultilineDiagnostic):
@@ -117,9 +116,8 @@ class UnbalancedIfDiagnostic(BaseMultilineDiagnostic):
         res = list()
         opened_if_stack = []
         for directive in pre_lines:
-            lineno = directive.lineno
             if is_open_directive(directive.hashword):
-                opened_if_stack.append(lineno)
+                opened_if_stack.append(directive)
             elif is_close_directive(directive.hashword):
                 if len(opened_if_stack) == 0:
                     # endifs are unbalanced, bail out
@@ -127,7 +125,7 @@ class UnbalancedIfDiagnostic(BaseMultilineDiagnostic):
                 opened_if_stack.pop()
 
         while len(opened_if_stack) > 0:
-            lineno = opened_if_stack.pop()
+            directive = opened_if_stack.pop()
             unbalanced_if = UnbalancedIfDiagnostic(directive,
                                         "Unbalanced opening directive found")
             res.append(unbalanced_if)
