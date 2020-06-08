@@ -63,7 +63,6 @@ def extract_multiline_sequence(lines, start_lineno):
         lineno += 1
     return res
 
-
 class PreprocessorDirective:
     "Tokenized preprocessor line(s)"
     def __init__(self, line_or_lines, lineno, context = Context.OUTSIDE):
@@ -149,10 +148,20 @@ class PreprocessorDirective:
             return token
         raise Exception("No alphanumeric symbols follow directive")
 
+    def tokens_without_comment(self):
+        # Disregard a trailing comment, i.e. anything after // or /*
+        # Certain other diagnostics treat comments as important part of lines
+        res = []
+        for token in self.tokens:
+            if token in ("//", "/*"):
+                break
+            res.append(token)
+        return res
+
     def uses_macro_tricks(self):
         """Return True if the expression contains things that indeed can be best
         done by preprocessor"""
-        all_tokens = tokenize(self.full_text)
+        all_tokens = self.tokens_without_comment()
         for token in all_tokens[1:]:
             if token == "##":
                 # concatenation

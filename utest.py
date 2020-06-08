@@ -226,6 +226,14 @@ class TestMacroTricks(unittest.TestCase):
             "#define eprintf(. . .) fprintf (stderr, __VA_ARGS__)", 1)
         self.assertTrue(directive.uses_macro_tricks())
 
+    def test_inside_comment(self):
+        # Should not treat the second hash as it is inside a comment
+        directive = PreprocessorDirective(['#endif // #define A'], 1)
+        self.assertFalse(directive.uses_macro_tricks())
+
+        directive = PreprocessorDirective(['#endif /* #define B */'], 2)
+        self.assertFalse(directive.uses_macro_tricks())
+
 class TestSimpleDirectives(unittest.TestCase):
 
     def test_indented_directive(self):

@@ -26,7 +26,8 @@ class UnknownDirectiveDiagnostic(BaseDiagnostic):
         if hashword in all_directives:
             return
         if directive.context != Context.OUTSIDE:
-            # Inside e.g. comments hashes may be used for decoration
+            # Inside e.g. comments hashes may be used for decoration, should not
+            # trigger a warning
             return
 
         return UnknownDirectiveDiagnostic(directive)
@@ -65,29 +66,16 @@ def count_non_alphanum(txt):
     alphanum_count = sum(c in ok_symbols for c in txt)
     return len(txt) - alphanum_count
 
-def tokens_without_comment(tokens):
-    # Disregard a trailing comment, i.e. anything after // or /*
-    # Certain other diagnostics treat comments as important part of lines
-    res = []
-    for token in tokens:
-        if token in ("//", "/*"):
-            break
-        res.append(token)
-    return res
-
 def has_any_operators(directive):
     has_operators = False
-    tokens = directive.tokens[1:]
-    tokens = tokens_without_comment(tokens)
+    tokens = directive.tokens_without_comment()
     for token in tokens:
         has_operators = (has_operators or has_logic_operator(token) or
                      has_comparison_operator(token))
     return has_operators
 
 def count_noncomment_tokens(directive):
-    tokens = directive.tokens[1:]
-    tokens = tokens_without_comment(tokens)
-    return len(tokens)
+    return len(directive.tokens_without_comment())
 
 class ComplexIfConditionDiagnostic(BaseDiagnostic):
     wcode = DiagCodes.complex_if_condition
