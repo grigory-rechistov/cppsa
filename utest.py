@@ -236,7 +236,14 @@ class TestSimpleDirectives(unittest.TestCase):
     def test_unknown_directive(self):
         directive = PreprocessorDirective("#unknown I am something unknown", 1)
         res = UnknownDirectiveDiagnostic.apply(directive)
-        self.assertTrue(res)
+        self.assertIsInstance(res, UnknownDirectiveDiagnostic)
+
+        directive = PreprocessorDirective(
+            "### I am decoration inside comment ###",
+            1,
+            Context.COMMENT)
+        res = UnknownDirectiveDiagnostic.apply(directive)
+        self.assertIsNone(res)
 
     def test_multi_line_define_separate(self):
         directive = PreprocessorDirective("#define TEXT \\", 1)

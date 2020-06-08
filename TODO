@@ -2,4 +2,3 @@
 
 - add typed variable whitelist diagnostic
 - Exclude W2 from the default list of enabled diagnostics
-- Do not report diagnostic W1 for non-outside contexts

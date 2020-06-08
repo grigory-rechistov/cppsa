@@ -23,8 +23,13 @@ class UnknownDirectiveDiagnostic(BaseDiagnostic):
     @staticmethod
     def apply(directive):
         hashword = directive.hashword
-        if not hashword in all_directives:
-            return UnknownDirectiveDiagnostic(directive)
+        if hashword in all_directives:
+            return
+        if directive.context != Context.OUTSIDE:
+            # Inside e.g. comments hashes may be used for decoration
+            return
+
+        return UnknownDirectiveDiagnostic(directive)
 
 class MultiLineDiagnostic(BaseDiagnostic):
     wcode = DiagCodes.multiline
