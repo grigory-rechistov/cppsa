@@ -24,5 +24,5 @@ class DiagCodes(IntEnum):
 
 all_wcodes = frozenset(int(m) for m in DiagCodes.__members__.values())
 
-def filter_diagnostics(all_diagnostics, enabled_wcodes):
-    return set(diag for diag in all_diagnostics if diag.wcode in enabled_wcodes)
+def filter_diag_codes(full_list, enabled_wcodes):
+    return set(diag for diag in full_list if diag.wcode in enabled_wcodes)

@@ -2,7 +2,7 @@
 
 from keywords import all_directives, preprocessor_prefixes
 from keywords import directive_contains_condition, directive_is_definition
-from diagcodes import DiagCodes, filter_diagnostics
+from diagcodes import DiagCodes, filter_diag_codes
 from rolling import Context
 
 class BaseDiagnostic:
@@ -328,7 +328,7 @@ def run_simple_checks(pre_lines, enabled_wcodes):
                           WrongContextDiagnostic,
     )
 
-    enabled_diagnostics = filter_diagnostics(all_diagnostics, enabled_wcodes)
+    enabled_diagnostics = filter_diag_codes(all_diagnostics, enabled_wcodes)
     res = list()
     for pre_line in pre_lines:
         for dia_class in enabled_diagnostics:

@@ -2,7 +2,7 @@ from tokenizer import PreprocessorDirective
 
 from keywords import is_open_directive, is_close_directive
 from keywords import DEFINE, CPLUSPLUS
-from diagcodes import DiagCodes, filter_diagnostics
+from diagcodes import DiagCodes, filter_diag_codes
 
 class BaseMultilineDiagnostic:
     wcode = 0
@@ -183,7 +183,7 @@ def run_complex_checks(pre_lines, enabled_wcodes):
                         UnmarkedEndifDiagnostic,
     )
 
-    enabled_diagnostics = filter_diagnostics(all_diagnostics, enabled_wcodes)
+    enabled_diagnostics = filter_diag_codes(all_diagnostics, enabled_wcodes)
 
     res = list()
     for dia_class in enabled_diagnostics:
