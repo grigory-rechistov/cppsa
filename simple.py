@@ -1,6 +1,6 @@
 # Collection of simple diagnostics working on a single text line
 
-from keywords import all_directives, preprocessor_prefixes
+from keywords import all_directives, preprocessor_prefixes, non_expr_keywords
 from keywords import directive_contains_condition, directive_is_definition
 from diagcodes import DiagCodes, filter_diag_codes
 from rolling import Context
@@ -127,21 +127,23 @@ class SuggestInlineDiagnostic(BaseDiagnostic):
     wcode = DiagCodes.suggest_inline_function
     def __init__(self, directive):
         super().__init__(directive)
-        self.details = "Suggest defining a static inline function instead"
+        self.details = ("Suggest defining a static or inline function returning"
+                         " the expression value")
 
     @staticmethod
     def apply(directive):
         # A macrodefine with non-empty parameter list
         # #define WORD ( something_not_bracket )
 
+        tokens = directive.tokens
         if not directive_is_definition(directive.hashword):
             return
-        # Is there enough tokens to contain bare minimum of function-like macro?
-        if len(directive.tokens) < 5:
+        # Is there enough tokens to form a bare minimum function-like macro?
+        if len(tokens) < 5:
             return
 
-        opening_bracket_candidate = directive.tokens[2]
-        param_candidate = directive.tokens[3]
+        opening_bracket_candidate = tokens[2]
+        param_candidate = tokens[3]
         if opening_bracket_candidate != "(":
             return
         # There must be no spaces between the opening bracket and the previous
@@ -156,6 +158,18 @@ class SuggestInlineDiagnostic(BaseDiagnostic):
         if param_candidate == ")": # no parameters between brackets
             return
 
+        # To tell this diagnostic from SuggestVoidDiagnostic, guess if the
+        # expression can return a value at all
+        try:
+            closing_bracket_pos = tokens.index(")")
+        except ValueError:
+            return # No closing bracket, likely an incorrect macro
+
+        if len(tokens) > closing_bracket_pos+1:
+            first_replacement_token = tokens[closing_bracket_pos+1]
+            # expression wrapped into "do", "if" cannot return a value
+            if first_replacement_token in non_expr_keywords:
+                return
         return SuggestInlineDiagnostic(directive)
 
 class If0DeadCodeDiagnostic(BaseDiagnostic):

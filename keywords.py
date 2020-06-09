@@ -57,3 +57,11 @@ def directive_is_definition(txt):
     # %define does not belong here for the purposes of being replaced by inline
     return txt in (DEFINE, )
 
+# C language keywords that cannot return value (cannot start an expression)
+# TODO extend it with C++ keywords
+non_expr_keywords = frozenset((
+    "auto", "break", "case", "char", "const", "continue", "default", "do",
+    "double", "else", "enum", "extern", "float", "for", "goto", "if", "int",
+    "long", "register", "return", "short", "signed", "sizeof", "static",
+    "struct", "switch", "typedef", "union", "unsigned", "void", "volatile",
+    "while"))
