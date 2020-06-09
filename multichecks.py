@@ -3,6 +3,7 @@ from tokenizer import PreprocessorDirective
 from keywords import is_open_directive, is_close_directive
 from keywords import DEFINE, CPLUSPLUS
 from diagcodes import DiagCodes, filter_diag_codes
+from threshold import Threshold
 
 class BaseMultilineDiagnostic:
     wcode = 0
@@ -66,7 +67,7 @@ class IfdefNestingDiagnostic(BaseMultilineDiagnostic):
     def apply_to_lines(pre_lines):
         # Complain after level has exceeded threshold until it has been reduced
         res = list()
-        max_level = 2
+        max_level = Threshold.IFDEF_NESTING
         max_level += 1 if sense_for_include_guard(pre_lines) else 0
         max_level += 1 if sense_for_global_cplusplus_guard(pre_lines) else 0
 
@@ -141,7 +142,7 @@ class UnmarkedEndifDiagnostic(BaseMultilineDiagnostic):
             # has matching comment at endif:
             #endif // COND
         # or similar
-        max_distance = 4
+        max_distance = Threshold.MAX_IFDEF_ENDIF_DISTANCE
         res = list()
         opened_if_stack = []
         for directive in pre_lines:

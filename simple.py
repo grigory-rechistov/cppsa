@@ -4,6 +4,7 @@ from keywords import all_directives, preprocessor_prefixes
 from keywords import directive_contains_condition, directive_is_definition
 from diagcodes import DiagCodes, filter_diag_codes
 from rolling import Context
+from threshold import Threshold
 
 class BaseDiagnostic:
     wcode = 0
@@ -96,17 +97,16 @@ class ComplexIfConditionDiagnostic(BaseDiagnostic):
         has_operators = has_any_operators(directive)
 
         # Consider wordiness a bad sign
-        tokens_threshold = 5 # an arbitrary value, really
+        tokens_threshold = Threshold.TOKENS_THRESHOLD
         too_many_tokens = count_noncomment_tokens(directive) > tokens_threshold
 
         # In absense of proper tokenizer, consider all non-alphanumeric symbols as
         # potential token delimeters
         non_alphanum = count_non_alphanum(directive.full_text)
 
-        non_alphanum_threshold = 6
         if (has_operators
             or too_many_tokens
-            or non_alphanum > non_alphanum_threshold):
+            or non_alphanum > Threshold.NON_ALPHANUM_THRESHOLD):
             return ComplexIfConditionDiagnostic(directive)
 
 class SpaceAfterHashDiagnostic(BaseDiagnostic):
@@ -256,7 +256,7 @@ class SuggestConstantDiagnostic(BaseDiagnostic):
 
 class TooLongDefineDiagnostic(BaseDiagnostic):
     wcode = DiagCodes.too_long_define
-    line_limit = 3
+    line_limit = Threshold.DEFINE_LINES_LIMIT
     def __init__(self, directive):
         super().__init__(directive)
         self.details = ("Multi-line definition is longer than %d lines" %
@@ -272,7 +272,7 @@ class TooLongDefineDiagnostic(BaseDiagnostic):
             return TooLongDefineDiagnostic(directive)
 
 class WrongContextDiagnostic(BaseDiagnostic):
-    wcode = DiagCodes.multiline_conditional
+    wcode = DiagCodes.wrong_context
     def __init__(self, directive):
         super().__init__(directive)
         str_context = directive.context.value
@@ -296,7 +296,7 @@ class MultilineConditionalDiagnostic(BaseDiagnostic):
             return
         number_of_lines = len(directive.multi_lines)
 
-        if number_of_lines > 1:
+        if number_of_lines > Threshold.MULTILINE_CONDITIONAL:
             return MultilineConditionalDiagnostic(directive)
 
 
