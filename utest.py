@@ -146,6 +146,13 @@ class TestInputFiles(unittest.TestCase):
         res = cppsa_main(argv)
         self.assertEqual(res, 1)
 
+    def test_main_on_static_inline_vs_static_void(self):
+        # Should not suggest do {} while to static inline returning non-void
+        argv = [TestInputFiles.script, '-q', '-Dall,-2,-13',
+                'test/double-diags']
+        res = cppsa_main(argv)
+        self.assertEqual(res, 0)
+
 
 class TestCommandLineOptions(unittest.TestCase):
     def test_analyze_true_preprocessor(self):

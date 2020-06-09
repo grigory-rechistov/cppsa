@@ -162,7 +162,7 @@ class UnmarkedEndifDiagnostic(BaseMultilineDiagnostic):
                 endif_tokens = directive.tokens
                 # Ideally, we need to check if the text of the comment
                 # matched the #if condition, but given it is a freeform text,
-                # it can not be reliably done for complex cases.
+                # it cannot be reliably done for complex cases.
                 # Instead, require that some comment is present
                 # TODO at least the first alphanumeric token should match, and
                 #      it can be easily checked
