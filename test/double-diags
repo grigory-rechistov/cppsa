@@ -1,0 +1,3 @@
+#define SDF_RTE_DEL123_U(dst, i, src) do {  \
+        dst->u128[2 * i] = src->u128[0];      \
+} while (0)
