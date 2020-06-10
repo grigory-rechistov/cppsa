@@ -158,6 +158,11 @@ class TestInputFiles(unittest.TestCase):
         res = cppsa_main(argv)
         self.assertEqual(res, 0)
 
+    def test_main_on_junk_inside_comments(self):
+        # Should not suggest do {} while to static inline returning non-void
+        argv = [TestInputFiles.script,'-q', 'test/not-directive-inside-comment']
+        res = cppsa_main(argv)
+        self.assertEqual(res, 0)
 
 class TestCommandLineOptions(unittest.TestCase):
     def test_analyze_true_preprocessor(self):

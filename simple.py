@@ -16,6 +16,9 @@ class BaseDiagnostic:
         return "<%s W%d at %d: %s>" % (type(self).__name__,
                                       self.wcode, self.lineno, self.details)
 
+def hashword_is_known(hashword):
+    return hashword in all_directives
+
 class UnknownDirectiveDiagnostic(BaseDiagnostic):
     wcode = DiagCodes.unknown
     def __init__(self, directive):
@@ -24,7 +27,7 @@ class UnknownDirectiveDiagnostic(BaseDiagnostic):
     @staticmethod
     def apply(directive):
         hashword = directive.hashword
-        if hashword in all_directives:
+        if hashword_is_known(hashword):
             return
         if directive.context != Context.OUTSIDE:
             # Inside e.g. comments hashes may be used for decoration, should not
@@ -52,8 +55,13 @@ class LeadingWhitespaceDiagnostic(BaseDiagnostic):
         self.details = "Preprocessor directive starts with whitespace"
     @staticmethod
     def apply(directive):
-        if not (directive.first_line[0] in preprocessor_prefixes):
-            return LeadingWhitespaceDiagnostic(directive)
+        if (directive.first_line[0] in preprocessor_prefixes):
+            return
+        if (directive.context != Context.OUTSIDE
+                and not hashword_is_known(directive.hashword)):
+            # Likely to be a stray hash symbol
+            return
+        return LeadingWhitespaceDiagnostic(directive)
 
 def has_logic_operator(t):
     return (t.find("&&") != -1 or t.find("||") != -1)
@@ -295,6 +303,9 @@ class WrongContextDiagnostic(BaseDiagnostic):
     @staticmethod
     def apply(directive):
         if directive.context == Context.OUTSIDE:
+            return
+        if not hashword_is_known(directive.hashword):
+            # Likely to be a stray hash symbol
             return
         return WrongContextDiagnostic(directive)
 
