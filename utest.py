@@ -484,6 +484,8 @@ class TestSimpleDirectives(unittest.TestCase):
         directive = PreprocessorDirective(["#define SYMBOL \\",
                                            "one more line\\",
                                            "and one more\\",
+                                           "it goes on and on\\",
+                                           "I am getting tired\\",
                                            "now that is too long"], 1)
         res = TooLongDefineDiagnostic.apply(directive)
         self.assertIsInstance(res, TooLongDefineDiagnostic)
