@@ -108,8 +108,8 @@ class ComplexIfConditionDiagnostic(BaseDiagnostic):
         tokens_threshold = Threshold.TOKENS_THRESHOLD
         too_many_tokens = count_noncomment_tokens(directive) > tokens_threshold
 
-        # In absense of proper tokenizer, consider all non-alphanumeric symbols as
-        # potential token delimeters
+        # In absence of proper tokenizer, consider all non-alphanumeric symbols as
+        # potential token delimiters
         non_alphanum = count_non_alphanum(directive.full_text)
 
         if (has_operators
