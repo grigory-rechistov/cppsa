@@ -329,6 +329,12 @@ class TestSimpleDirectives(unittest.TestCase):
         res = SpaceAfterHashDiagnostic.apply(directive)
         self.assertTrue(res)
 
+    def test_space_after_hash_in_comment(self):
+        directive = PreprocessorDirective("# not a directive but comment", 1,
+            Context.COMMENT)
+        res = SpaceAfterHashDiagnostic.apply(directive)
+        self.assertIsNone(res)
+
     def test_more_spaces_around_leading_symbol(self):
         directive = PreprocessorDirective(" #   include <lib>", 1)
         res = SpaceAfterHashDiagnostic.apply(directive)

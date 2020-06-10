@@ -128,8 +128,13 @@ class SpaceAfterHashDiagnostic(BaseDiagnostic):
         txt = directive.full_text.strip()
         if len(txt) < 2:
             return
-        if txt[1] in (" ", "\t"):
-            return SpaceAfterHashDiagnostic(directive)
+        if not (txt[1] in (" ", "\t")):
+            return
+        if (directive.context != Context.OUTSIDE
+                and not hashword_is_known(directive.hashword)):
+            # Likely to be a stray hash symbol
+            return
+        return SpaceAfterHashDiagnostic(directive)
 
 class SuggestInlineDiagnostic(BaseDiagnostic):
     wcode = DiagCodes.suggest_inline_function
