@@ -248,10 +248,16 @@ class SuggestConstantDiagnostic(BaseDiagnostic):
 
     @staticmethod
     def apply(directive):
-        # symbol is defined as a literal constant:
-        # #define SYMBOL 1234
-        # #define SYMBOL 0xabcd
-        # #define SYMBOL "string here"
+        """ symbol is defined as a literal constant:
+            #define SYMBOL 1234
+            #define SYMBOL 0xabcd
+            #define SYMBOL "string here"
+            It can also be a known compile time expression, e.g.
+            #define MAX_VAL UINT64_C(100000)
+            Note that this diagnostic is not smart enough to detect when
+            a compile-time constant expression is encountered, e.g.
+            # define LENGTH 12 + 4
+        """
 
         if not directive_is_definition(directive.hashword):
             return
@@ -263,7 +269,8 @@ class SuggestConstantDiagnostic(BaseDiagnostic):
         diag = SuggestConstantDiagnostic(directive, symbol)
 
         literal_candidate = directive.tokens[2]
-        if literal_candidate == "(": # It is a function-like define
+        if literal_candidate == "(":
+            # It is a function-like define or a complex expression
             return
 
         if literal_candidate == "\\": # No idea what follows at the next line
@@ -272,8 +279,22 @@ class SuggestConstantDiagnostic(BaseDiagnostic):
         if literal_candidate in SuggestConstantDiagnostic.recognized_keywords:
             return diag
 
+        if literal_candidate[0] == '"':
+            # Looks like a string literal
+            # TODO maybe create a separate diagnostic tuned for precise
+            # detection of string literals
+            return diag
+
         if len(directive.tokens) == 3:
-            # Not much deviation from #define SYMBOL LITERAL
+            #define SYMBOL LITERAL
+            # Python uses some of integer representations identical to C.
+            # TODO why not accept floats as well?
+            try:
+                # Accepted: 1234, 0xabcd, 0b1110, 0o777
+                # Rejected: 0777, 10LL, 123U
+                int_val = int(literal_candidate, 0)
+            except ValueError:
+                return
             return diag
 
 class TooLongDefineDiagnostic(BaseDiagnostic):

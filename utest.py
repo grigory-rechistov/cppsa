@@ -411,6 +411,11 @@ class TestSimpleDirectives(unittest.TestCase):
         res = SuggestConstantDiagnostic.apply(directive)
         self.assertIsInstance(res, SuggestConstantDiagnostic)
 
+
+        directive = PreprocessorDirective('#define E "Longer string "', 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertIsInstance(res, SuggestConstantDiagnostic)
+
     def test_suggest_better_constant_accept_special(self):
         directive = PreprocessorDirective("#define A UINT64_C(1)", 1)
         res = SuggestConstantDiagnostic.apply(directive)
@@ -457,26 +462,43 @@ class TestSimpleDirectives(unittest.TestCase):
         res = SuggestConstantDiagnostic.apply(directive)
         self.assertFalse(res)
 
+    def test_suggest_better_constant_reject_special(self):
+        directive = PreprocessorDirective('#define EXPR a->xyz_val.field', 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertIsNone(res)
+
     def test_suggest_better_constant_reject_too_complex(self):
         # Too complex to figure out the constant means the diagnostic will not
-        # be reported for the following cases. Ideally, these cases should be
-        # to start being recognized
+        # be reported for the following cases. Ideally, the diagnostic should be
+        # improved to start recognizing at least some of these cases
 
         directive = PreprocessorDirective("#define A (400)", 1)
         res = SuggestConstantDiagnostic.apply(directive)
-        self.assertFalse(res)
+        self.assertIsNone(res)
 
         directive = PreprocessorDirective("#define B (uint64_t)400", 1)
         res = SuggestConstantDiagnostic.apply(directive)
-        self.assertFalse(res)
+        self.assertIsNone(res)
 
         directive = PreprocessorDirective("#define C (1 << 30)", 1)
         res = SuggestConstantDiagnostic.apply(directive)
-        self.assertFalse(res)
+        self.assertIsNone(res)
 
         directive = PreprocessorDirective("#define D ~UINT32_C(0x1ff)", 1)
         res = SuggestConstantDiagnostic.apply(directive)
-        self.assertFalse(res)
+        self.assertIsNone(res)
+
+        directive = PreprocessorDirective("#define E 1234ULL)", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertIsNone(res)
+
+        directive = PreprocessorDirective("#define F 0777", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertIsNone(res)
+
+        directive = PreprocessorDirective("#define G 3+4", 1)
+        res = SuggestConstantDiagnostic.apply(directive)
+        self.assertIsNone(res)
 
     def test_suggest_better_constant_symbol_is_mentioned_in_details(self):
         directive = PreprocessorDirective("#define THIS_IS_SYMBOL 0", 1)
